@@ -11,29 +11,45 @@ import { StateVerifier } from "../verifier/StateVerifier";
 import { EnvironmentManager } from "../environment/EnvironmentManager";
 
 
-// TODO: check all these types, should be replaced with the actual types in the corresponding types.ts files
 /**
  * Configuration returned from the API server
- * Placeholder that will be populated with more fields later
  */
 export interface ServerConfig {
-  // L1 configuration
-  l1RpcUrl?: string;
-  l1ChainId?: number;
-  // L2 configuration
-  l2RpcUrl?: string;
-  l2ChainId?: number;
-  // Contract addresses
-  contractAddresses?: {
-    [key: string]: string;
+  // ETH Bridge setup outputs
+  eth_bridge_setup_outputs?: {
+    l2_legacy_proxy_class_hash: string;
+    l2_erc20_legacy_class_hash: string;
+    l2_eth_proxy_address: string;
+    l2_starkgate_proxy_class_hash: string;
+    l2_legacy_eth_bridge_class_hash: string;
+    l2_eth_bridge_proxy_address: string;
+    l1_bridge_address: string;
   };
-  // Network state
-  blockHeight?: {
-    l1: number;
-    l2: number;
+  // ERC20 Bridge setup outputs
+  erc20_bridge_setup_outputs?: {
+    erc20_cairo_one_class_hash: string;
+    l1_token_bridge_proxy: string;
+    l1_manager_address: string;
+    l1_registry_address: string;
+    l2_token_bridge: string;
+    test_erc20_token_address: string;
+  };
+  // UDC setup outputs
+  udc_setup_outputs?: {
+    udc_class_hash: string;
+    udc_address: string;
+  };
+  // Argent setup outputs
+  argent_setup_outputs?: {
+    argent_class_hash: string;
+  };
+  // Braavos setup outputs
+  braavos_setup_outputs?: {
+    braavos_class_hash: string;
   };
 }
 
+// TODO: add needed fields from ServerConfig
 export interface TestConfig {
   mode: 'local' | 'testnet';
   l1?: {
@@ -46,11 +62,7 @@ export interface TestConfig {
   useApiServer?: boolean;
   apiServerUrl?: string;
   environment: {
-    type: 'local' | 'testnet' | 'mainnet' | 'mainnet-fork';
-    fork?: {
-      l1RpcUrl?: string;
-      l1BlockNumber?: number | 'latest';
-    };
+    type: 'local' | 'testnet';
   };
 
   AccountsConfig: AccountConfig[];
