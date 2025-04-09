@@ -5,7 +5,7 @@ import { TestConfig } from '../types';
 /**
  * Get package root directory (more robust than relative paths)
  */
-const packageRootDir = path.resolve(__dirname, '../../..');
+const packageRootDir = path.resolve(__dirname, '../../');
 
 /**
  * Default configuration file path

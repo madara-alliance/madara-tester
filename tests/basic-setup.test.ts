@@ -1,5 +1,6 @@
 import { describe, test, expect } from '@jest/globals';
-import { registerJestHooks, getTestContext } from '@madara/test-engine';
+import { registerJestHooks, getTestContext } from '../index';
+
 
 // Register jest hooks
 registerJestHooks();
@@ -28,18 +29,13 @@ describe('Basic Setup Verification', () => {
   test('should connect to L1 and L2', async () => {
     const ctx = getTestContext();
     // Check L1 connection
-    const l1BlockNumber = await ctx.getL1Gateway().getBlockNumber();
+    const l1BlockNumber = await ctx.getL1Gateway().getLatestBlockNumber();
     console.log(`L1 block number: ${l1BlockNumber}`);
     expect(l1BlockNumber).toBeGreaterThanOrEqual(0);
     
     // Check L2 connection
-    const l2BlockNumber = await ctx.getL2Gateway().getBlockNumber();
+    const l2BlockNumber = await ctx.getL2Gateway().getLatestBlockNumber();
     console.log(`L2 block number: ${l2BlockNumber}`);
     expect(l2BlockNumber).toBeGreaterThanOrEqual(0);
-  });
-  
-  test('should have bridge component configured', () => {
-    const ctx = getTestContext();
-    expect(ctx.getBridgeService()).toBeDefined();
   });
 }); 

@@ -24,19 +24,17 @@ export default {
     }
   },
 
-  accounts: {
-    // Default test mnemonic (DO NOT use in production)
-    mnemonic: 'test test test test test test test test test test test junk',
-    // Optional name for identification
-    name: 'Default Test Account',
-    // Default funding for test accounts
-    localFunding: {
-      l1Eth: '1000', // 1000 ETH for each account
-      l2Eth: '1000', // 1000 ETH for each account
-    },
-    // Default signer type
-    signerType: 'file',
-  },
+  // Use AccountsConfig instead of accounts
+  AccountsConfig: [
+    {
+      // Default test mnemonic (DO NOT use in production)
+      mnemonic: 'test test test test test test test test test test test junk',
+      // Optional name for identification  
+      name: 'Default Test Account',
+      // Default signer type
+      signerType: 'file',
+    }
+  ],
 
   contracts: {
     // Default contract addresses (replace with actual addresses when available)

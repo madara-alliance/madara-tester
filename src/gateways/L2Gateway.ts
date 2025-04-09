@@ -60,6 +60,23 @@ export class L2Gateway {
   }
   
   /**
+   * Gets the latest block number from the L2 chain
+   */
+  async getLatestBlockNumber(): Promise<number> {
+    this.logger.debug('Getting latest L2 block number');
+    try {
+      // For starknet.js, the equivalent of getBlockNumber is getting the latest block and reading its number
+      const block = await this.provider.getBlock('latest');
+      const blockNumber = Number(block.block_number);
+      this.logger.debug(`Latest L2 block number: ${blockNumber}`);
+      return blockNumber;
+    } catch (error) {
+      this.logger.error(`Failed to get latest block number: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+  
+  /**
    * Gets a typed starknet.js Contract instance for L2
    * This is a placeholder implementation
    */

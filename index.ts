@@ -20,7 +20,11 @@ declare global {
 // Export core components and types
 export * from './src/accounts/signer/Signer';
 export * from './src/accounts/types';
-export type { TestContext } from './src/types';
+export type { TestContext, TestConfig, ServerConfig } from './src/types';
+export { L1Gateway } from './src/gateways/L1Gateway';
+export { L2Gateway } from './src/gateways/L2Gateway';
+export { StateVerifier } from './src/verifier/StateVerifier';
+export { AccountsManager } from './src/accounts/AccountsManager';
 export { setGlobalDebugMode, enableDebugForComponents, LoggerConfig };
 
 // Logger

@@ -11,8 +11,9 @@
     "outDir": "dist",
     "baseUrl": ".",
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "declaration": true
   },
-  "include": ["tests/**/*.ts", "test-engine.config.ts"],
+  "include": ["index.ts", "src/**/*.ts", "tests/**/*.ts", "test-engine.config.ts", "engine/**/*.ts"],
   "exclude": ["node_modules"]
 }

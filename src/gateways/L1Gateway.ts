@@ -20,6 +20,21 @@ export class L1Gateway {
   }
   
   /**
+   * Gets the latest block number from the L1 chain
+   */
+  async getLatestBlockNumber(): Promise<number> {
+    this.logger.debug('Getting latest L1 block number');
+    try {
+      const blockNumber = await this.provider.getBlockNumber();
+      this.logger.debug(`Latest L1 block number: ${blockNumber}`);
+      return blockNumber;
+    } catch (error) {
+      this.logger.error(`Failed to get latest block number: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+  
+  /**
    * Gets a typed ethers.js Contract instance for L1
    */
   async getContract<T extends ethers.BaseContract>(
