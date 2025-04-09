@@ -33,14 +33,14 @@ export class L1Gateway {
   /**
    * Sends an L1 transaction
    */
-  async sendTransaction(
+  async sendL1Transaction(
     txRequest: ethers.TransactionRequest,
     signer: Signer
   ): Promise<ethers.TransactionResponse> {
     this.logger.debug(`Sending transaction to ${txRequest.to}`);
     
     const address = await signer.getAddress();
-    const signedTx = await signer.signTransaction(txRequest);
+    const signedTx = await signer.signL1Transaction(txRequest);
     
     try {
       const tx = await this.provider.broadcastTransaction(signedTx);
@@ -116,7 +116,7 @@ export class L1Gateway {
     const factory = new ethers.ContractFactory(abi, bytecode);
     const deployTx = factory.getDeployTransaction(...args);
     
-    const tx = await this.sendTransaction(deployTx as unknown as ethers.TransactionRequest, signer);
+    const tx = await this.sendL1Transaction(deployTx as unknown as ethers.TransactionRequest, signer);
     this.logger.debug(`Deployment transaction sent: ${tx.hash}`);
     
     const receipt = await this.waitForTransaction(tx.hash, 1);
@@ -153,7 +153,7 @@ export class L1Gateway {
     this.logger.info(`Sending message to L2 contract ${targetContract}`);
     
     // In a real implementation, this would call the bridge contract
-    const tx = await this.sendTransaction({
+    const tx = await this.sendL1Transaction({
       to: '0x0000000000000000000000000000000000000001', // Bridge contract placeholder
       value: fee,
       data: ethers.concat([

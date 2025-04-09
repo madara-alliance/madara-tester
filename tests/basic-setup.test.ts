@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { registerJestHooks, getTestContext, TestContext } from '@madara/test-engine';
+import { registerJestHooks, getTestContext } from '@madara/test-engine';
 
 // Register jest hooks
 registerJestHooks();
@@ -12,14 +12,14 @@ describe('Basic Setup Verification', () => {
   test('should have valid test context', () => {
     const ctx = getTestContext();
     expect(ctx).toBeDefined();
-    expect(ctx.accounts).toBeDefined();
-    expect(ctx.l1).toBeDefined();
-    expect(ctx.l2).toBeDefined();
+    expect(ctx.getAccountsManager()).toBeDefined();
+    expect(ctx.getL1Gateway()).toBeDefined();
+    expect(ctx.getL2Gateway()).toBeDefined();
   });
 
   test('should have test accounts configured', () => {
     const ctx = getTestContext();
-    const user = ctx.accounts.get(0);
+    const user = ctx.getAccountsManager().get(0);
     expect(user).toBeDefined();
     expect(user.l1Address).toBeDefined();
     expect(user.l2Address).toBeDefined();
@@ -28,18 +28,18 @@ describe('Basic Setup Verification', () => {
   test('should connect to L1 and L2', async () => {
     const ctx = getTestContext();
     // Check L1 connection
-    const l1BlockNumber = await ctx.l1.getBlockNumber();
+    const l1BlockNumber = await ctx.getL1Gateway().getBlockNumber();
     console.log(`L1 block number: ${l1BlockNumber}`);
     expect(l1BlockNumber).toBeGreaterThanOrEqual(0);
     
     // Check L2 connection
-    const l2BlockNumber = await ctx.l2.getBlockNumber();
+    const l2BlockNumber = await ctx.getL2Gateway().getBlockNumber();
     console.log(`L2 block number: ${l2BlockNumber}`);
     expect(l2BlockNumber).toBeGreaterThanOrEqual(0);
   });
   
   test('should have bridge component configured', () => {
     const ctx = getTestContext();
-    expect(ctx.bridge).toBeDefined();
+    expect(ctx.getBridgeService()).toBeDefined();
   });
 }); 

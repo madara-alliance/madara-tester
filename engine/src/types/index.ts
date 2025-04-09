@@ -75,12 +75,11 @@ export interface TestConfig {
   };
 }
 
-// export interface TestContext {
-//   config: TestConfig;
-//   accounts: any; // Will be replaced with AccountsManager
-//   l1: any; // Will be replaced with L1Gateway
-//   l2: any; // Will be replaced with L2Gateway
-//   bridge: any; // Will be replaced with BridgeService
-//   verifier: any; // Will be replaced with StateVerifier
-//   environment: any; // Will be replaced with EnvironmentManager
-// } 
+export interface TestContext {
+  getAccountsManager(): any;
+  getL1Gateway(): any;
+  getL2Gateway(): any;
+  getBridgeService(): any;
+  getStateVerifier(): any;
+  getEnvironmentManager(): any;
+} 

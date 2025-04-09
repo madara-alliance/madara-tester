@@ -1,4 +1,4 @@
-import { TestContext as TestContextInterface, TestConfig } from '../types';
+import { TestConfig, TestContext } from '../types';
 import { AccountsManager } from '../accounts/AccountsManager';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
@@ -10,18 +10,20 @@ import { getComponentLogger } from '../utils/logger';
 /**
  * Factory for creating and assembling TestContext objects
  */
-export class TestContext {
+export class ContextFactory {
   private logger = getComponentLogger('TestContext');
   
   /**
    * Assembles a TestContext instance with all components
    */
-  async createContext(
+  async create(
     config: TestConfig,
-    environment: EnvironmentManager
-  ): Promise<TestContextInterface> {
+  ): Promise<TestContext> {
     this.logger.info('Assembling test context');
-        
+
+    // Create environment manager
+    const environment = new EnvironmentManager(config);
+
     // Create the gateways
     const l1Gateway = new L1Gateway(config);
     const l2Gateway = new L2Gateway(config);
@@ -32,36 +34,24 @@ export class TestContext {
     // Initialize accounts with the gateway providers
     await accountsManager.initialize(
       config.AccountsConfig,
+      l1Gateway,
+      l2Gateway
     );
     
     // Create the bridge service
-    const l1BridgeAddress = typeof config.contracts.l1Bridge === 'string' 
-      ? config.contracts.l1Bridge 
-      : config.contracts.l1Bridge[config.environment.type];
-      
-    const l2BridgeAddress = typeof config.contracts.l2Bridge === 'string'
-      ? config.contracts.l2Bridge
-      : config.contracts.l2Bridge[config.environment.type];
-    
-    const bridgeService = new BridgeService(
-      l1Gateway,
-      l2Gateway,
-      l1BridgeAddress,
-      l2BridgeAddress
-    );
+    // TODO: init bridge component
     
     // Create the state verifier
     const stateVerifier = new StateVerifier(l1Gateway, l2Gateway);
     
     // Assemble the context
-    const context: TestContextInterface = {
-      config,
-      accounts: accountsManager,
-      l1: l1Gateway,
-      l2: l2Gateway,
-      bridge: bridgeService,
-      verifier: stateVerifier,
-      environment
+    const context: TestContext = {
+      getAccountsManager: () => accountsManager,
+      getL1Gateway: () => l1Gateway,
+      getL2Gateway: () => l2Gateway,
+      getBridgeService: () => null,
+      getStateVerifier: () => stateVerifier,
+      getEnvironmentManager: () => environment
     };
     
     this.logger.debug('Test context assembled');

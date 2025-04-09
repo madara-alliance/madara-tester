@@ -271,19 +271,15 @@ export class AccountsManager {
   async deployAccounts(
     config: TestConfig,
     l2Gateway: L2Gateway,
-    indices?: number[]
   ): Promise<void> {
-    // If no indices provided, deploy all accounts
-    const accountIndices = indices || Array.from({ length: this.accounts.length }, (_, i) => i);
+    this.logger.info(`Deploying ${this.accounts.length} Starknet accounts...`);
     
-    this.logger.info(`Deploying ${accountIndices.length} Starknet accounts...`);
-    
-    for (const index of accountIndices) {
+    for (let account of this.accounts) {
       try {
-        await this.deployAccount(index, config, l2Gateway);
+        await this.deployAccount(account, config, l2Gateway);
       } catch (error) {
-        this.logger.error(`Failed to deploy account ${index}: ${(error as Error).message}`);
-        // Continue with other accounts even if one fails
+        this.logger.error(`Failed to deploy account ${account.name}: ${(error as Error).message}`);
+        continue;
       }
     }
     

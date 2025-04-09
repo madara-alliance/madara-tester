@@ -62,8 +62,8 @@ describe('My Test Suite', () => {
     // Access the test context - automatically set up by registerJestHooks
     const ctx = getTestContext();
     
-    // Use ctx.accounts, ctx.l1, ctx.l2, etc.
-    const accounts = ctx.accounts.get(0);
+    // Use ctx getter methods like getAccountsManager(), getL1Gateway(), etc.
+    const accounts = ctx.getAccountsManager().get(0);
     // ...
   });
 });
