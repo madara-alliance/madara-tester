@@ -1,5 +1,5 @@
 import { TestContext as TestContextInterface, TestConfig } from '../types';
-import { AccountsManager, AccountConfig } from '../accounts/AccountsManager';
+import { AccountsManager } from '../accounts/AccountsManager';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
 import { BridgeService } from '../bridge/BridgeService';
@@ -21,32 +21,17 @@ export class TestContext {
     environment: EnvironmentManager
   ): Promise<TestContextInterface> {
     this.logger.info('Assembling test context');
-    
-    // Get RPC URLs
-    const l1RpcUrl = config.l1?.rpcUrl;
-    const l2RpcUrl = config.l2?.rpcUrl;
-    
-    if (!l1RpcUrl || !l2RpcUrl) {
-      throw new Error('Missing RPC URLs in configuration');
-    }
-    
+        
     // Create the gateways
-    const l1Gateway = new L1Gateway(l1RpcUrl);
-    const l2Gateway = new L2Gateway(l2RpcUrl);
+    const l1Gateway = new L1Gateway(config);
+    const l2Gateway = new L2Gateway(config);
     
     // Create the accounts manager
     const accountsManager = new AccountsManager();
     
-    // Create account config with required count property
-    const accountConfig: AccountConfig = {
-      ...config.accounts,
-      count: 10 // Default number of accounts to generate
-    };
-    
+    // Initialize accounts with the gateway providers
     await accountsManager.initialize(
-      accountConfig,
-      l1Gateway.provider,
-      l2Gateway.provider
+      config.AccountsConfig,
     );
     
     // Create the bridge service

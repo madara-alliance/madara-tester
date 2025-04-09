@@ -1,31 +1,19 @@
 import { ethers } from 'ethers';
-import { TestAccount } from './types';
-import { Signer } from './Signer';
-import { SignerFileImpl } from './implementation/SignerFileImpl';
+import { RpcProvider, Account as StarknetAccount, ec, hash, CallData } from 'starknet';
+import { Account, AccountConfig } from './types';
+import { Signer } from './signer/Signer';
+import { SignerFileImpl } from './signer/file/SignerFileImpl';
 import { TestConfig } from '../types';
 import { getComponentLogger } from '../utils/logger';
-
-/**
- * Interface for account configuration
- */
-export interface AccountConfig {
-  mnemonic: string;
-  count: number;
-  localFunding?: {
-    l1Eth?: string;
-    l2Eth?: string;
-  };
-  signerType: 'file';
-}
+import { L1Gateway } from '../gateways/L1Gateway';
+import { L2Gateway } from '../gateways/L2Gateway';
 
 /**
  * Manages test accounts for both L1 and L2
  */
 export class AccountsManager {
-  private accounts: TestAccount[] = [];
+  private accounts: Account[] = [];
   private logger = getComponentLogger('AccountsManager');
-  private l1Provider: ethers.Provider;
-  private l2Provider: any; // Will be replaced with a proper Starknet provider type
   
   constructor() {
     this.logger.debug('AccountsManager created');
@@ -35,56 +23,78 @@ export class AccountsManager {
    * Initializes the account pool from configuration
    */
   async initialize(
-    config: AccountConfig,
-    l1Provider: ethers.Provider,
-    l2Provider: any
+    config: TestConfig['AccountsConfig'],
+    l1Gateway: L1Gateway, 
+    l2Gateway: L2Gateway
   ): Promise<void> {
-    this.logger.info(`Initializing account pool with ${config.count} accounts`);
-    this.l1Provider = l1Provider;
-    this.l2Provider = l2Provider;
+    this.logger.info(`Initializing account pool with ${config.length} account configs`);
     
-    // Generate HD wallet from mnemonic
-    const hdNode = ethers.HDNodeWallet.fromPhrase(config.mnemonic);
-    
-    // Create accounts
-    for (let i = 0; i < config.count; i++) {
-      const childNode = hdNode.deriveChild(i);
-      const privateKey = childNode.privateKey;
+    // Process each account configuration
+    for (const accountConfig of config) {
+      let account: Account;
       
-      // Create L1 signer using the appropriate implementation
-      let l1Signer: Signer = new SignerFileImpl(privateKey);
-      
-      // For L2, we'll use a placeholder for now
-      // In a real implementation, this would be a proper Starknet signer
-      const l2Signer = {
-        getAddress: async () => await l1Signer.getAddress()
-      };
-      
-      const l1Address = await l1Signer.getAddress();
-      // In this demo, we'll use the same address for L1 and L2
-      // In a real implementation, this would be the actual Starknet account address
-      const l2Address = l1Address;
-      
-      const account: TestAccount = {
-        name: `Account-${i}`,
-        privateKey,
-        l1Address,
-        l2Address,
-        l1Signer,
-        l2Signer
-      };
+      if (accountConfig.random === true) {
+        account = await this.createRandom(
+          accountConfig.name,
+          accountConfig.accountType
+        );
+      } else if (accountConfig.mnemonic) {
+        account = await this.createFromMnemonic(
+          accountConfig.mnemonic, 
+          0,
+          accountConfig.name,
+          accountConfig.accountType
+        );
+      } else {
+        this.logger.warn(`Skipping account config with no mnemonic or random flag set`);
+        continue;
+      }
       
       this.accounts.push(account);
-      this.logger.debug(`Created account: ${account.name} (${l1Address})`);
+      this.logger.debug(`Added account: ${account.name} (${account.l1Address})`);
     }
     
     this.logger.info(`Initialized ${this.accounts.length} accounts`);
   }
   
   /**
+   * Creates an account from a mnemonic phrase
+   */
+  async createFromMnemonic(
+    mnemonic: string,
+    index: number = 0,
+    name?: string,
+    accountType?: 'braavos' | 'argent'
+  ): Promise<Account> {
+    // Generate HD wallet from mnemonic
+    const hdNode = ethers.HDNodeWallet.fromPhrase(mnemonic);
+    const childNode = hdNode.deriveChild(index);
+    const privateKey = childNode.privateKey;
+    
+    // Create L1 signer using the appropriate implementation
+    const signer: Signer = new SignerFileImpl(privateKey);
+    
+    const l1Address = await signer.getAddress();
+    // In this demo, we'll use the same address for L1 and L2
+    const l2Address = l1Address;
+    
+    const account: Account = {
+      name: name || `Account-${index}`,
+      privateKey,
+      l1Address,
+      l2Address,
+      signer,
+      accountType,
+      deployed: false
+    };
+    
+    return account;
+  }
+  
+  /**
    * Gets a pre-configured account by its index
    */
-  get(index: number): TestAccount {
+  get(index: number): Account {
     if (index < 0 || index >= this.accounts.length) {
       throw new Error(`Account index out of bounds: ${index}`);
     }
@@ -92,89 +102,191 @@ export class AccountsManager {
   }
   
   /**
-   * Gets the primary deployment account (index 0)
-   */
-  deployer(): TestAccount {
-    return this.get(0);
-  }
-  
-  /**
    * Returns all pre-configured accounts
    */
-  list(): TestAccount[] {
+  list(): Account[] {
     return [...this.accounts];
   }
   
   /**
-   * Creates a new, temporary account
+   * Creates a new random account
    */
-  async createRandom(): Promise<TestAccount> {
+  async createRandom(
+    name?: string,
+    accountType?: 'braavos' | 'argent'
+  ): Promise<Account> {
     const wallet = ethers.Wallet.createRandom();
     const privateKey = wallet.privateKey;
     
-    const l1Signer: Signer = new SignerFileImpl(privateKey);
-    const l1Address = await l1Signer.getAddress();
+    const signer: Signer = new SignerFileImpl(privateKey);
+    const l1Address = await signer.getAddress();
     
-    // Placeholder L2 signer
-    const l2Signer = {
-      getAddress: async () => l1Address
-    };
-    
-    const account: TestAccount = {
-      name: `Random-${this.accounts.length}`,
+    const account: Account = {
+      name: name || `Random-${this.accounts.length}`,
       privateKey,
       l1Address,
       l2Address: l1Address,
-      l1Signer,
-      l2Signer
+      signer,
+      accountType,
+      deployed: false
     };
     
-    this.logger.debug(`Created random account: ${account.name} (${l1Address})`);
+    this.logger.debug(`Created random account:
+      Name: ${account.name}
+      L1 Address: ${l1Address}
+      L2 Address: ${account.l2Address}
+    `);
     return account;
   }
   
   /**
-   * Funds an account on L1 (local devnet only)
+   * Generates Starknet key pair from an Ethereum private key
    */
-  async fundL1(
-    targetAddress: string,
-    amount: ethers.BigNumberish
-  ): Promise<string> {
-    this.logger.info(`Funding L1 address ${targetAddress} with ${amount} wei`);
+  private generateStarknetKeys(privateKey: string): { privateKey: string; publicKey: string } {    
+    const ethPrivateKey = privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey;
+    const starkPrivateKey = ethers.hexlify(ethPrivateKey);
+    const starkPublicKey = ec.starkCurve.getStarkKey(starkPrivateKey);
+    return {
+      privateKey: starkPrivateKey,
+      publicKey: starkPublicKey
+    };
+  }
+  
+  /**
+   * Calculates a Starknet account address based on the public key and class hash
+   */
+  private calculateAccountAddress(
+    publicKey: string,
+    classHash: string
+  ): string {
+    const accountConstructorCallData = CallData.compile({
+      publicKey: publicKey,
+    });
     
-    const deployer = this.deployer();
+    // Salt is usually the public key in standard implementations
+    const salt = publicKey;
+    
+    const accountAddress = hash.calculateContractAddressFromHash(
+      salt,
+      classHash,
+      accountConstructorCallData,
+      0 // We're using a new deployment, so no address is replaced
+    );
+    
+    return accountAddress;
+  }
+  
+  /**
+   * Deploys a Starknet account contract on-chain
+   */
+  async deployAccount(
+    account: Account,
+    config: TestConfig,
+    l2Gateway: L2Gateway
+  ): Promise<void> {
+    // If already deployed, just return
+    if (account.deployed) {
+      this.logger.info(`Account ${account.name} already deployed at ${account.l2Address}`);
+      return;
+    }
+    
+    // Check if account type and corresponding class hash are configured
+    if (!account.accountType) {
+      throw new Error(`Account ${account.name} has no accountType specified (braavos or argent)`);
+    }
+    
+    // Get the class hash based on account type
+    let classHash: string | undefined;
+    switch (account.accountType) {
+      case 'braavos':
+        classHash = config.starknetAccounts?.braavosClassHash;
+        break;
+      case 'argent':
+        classHash = config.starknetAccounts?.argentClassHash;
+        break;
+      default:
+        throw new Error(`Unsupported account type: ${account.accountType}`);
+    }
+    
+    if (!classHash) {
+      throw new Error(`Class hash for ${account.accountType} not configured in TestConfig.starknetAccounts`);
+    }
+  
+    
+    // Generate Starknet keys if not already present
+    if (!account.L2PublicKey) {
+      const keys = this.generateStarknetKeys(account.privateKey);
+      account.L2PublicKey = keys.publicKey;
+      
+      // Calculate account address
+      account.l2Address = this.calculateAccountAddress(keys.publicKey, classHash);
+      account.classHash = classHash;
+    }
+    
+    this.logger.info(`Deploying ${account.accountType} account at ${account.l2Address}...`);
     
     try {
-      const tx = await this.l1Provider.send('eth_sendTransaction', [
-        {
-          from: deployer.l1Address,
-          to: targetAddress,
-          value: ethers.toQuantity(amount),
-          gas: ethers.toQuantity(21000)
-        }
-      ]);
+      // Create a temporary account instance for deployment
+      const starknetAccount = new StarknetAccount(
+        l2Gateway.provider,
+        account.l2Address,
+        account.privateKey,
+        '1' // Use Cairo 1 version
+      );
       
-      this.logger.debug(`Funding transaction sent: ${tx}`);
-      return tx;
+      // Make sure classHash is defined before deploying
+      if (!account.classHash) {
+        throw new Error(`Account ${account.name} has no classHash defined`);
+      }
+      
+      // Deploy the account
+      const { transaction_hash } = await starknetAccount.deployAccount({
+        classHash: account.classHash,
+        constructorCalldata: [account.L2PublicKey],
+        addressSalt: account.L2PublicKey,
+      });
+      
+      // Wait for deployment to complete
+      const receipt = await l2Gateway.provider.waitForTransaction(transaction_hash);
+      
+      if (receipt.execution_status !== 'SUCCEEDED') {
+        throw new Error(`Failed to deploy account - ${transaction_hash}`);
+      }
+      
+      // Update account state
+      account.deployed = true;
+      account.deployTxHash = transaction_hash;
+      
+      this.logger.info(`✅ Account ${account.name} deployed successfully at ${account.l2Address} - tx: ${transaction_hash}`);
     } catch (error) {
-      this.logger.error(`Failed to fund L1 address: ${(error as Error).message}`);
+      this.logger.error(`Failed to deploy account: ${(error as Error).message}`);
       throw error;
     }
   }
   
   /**
-   * Funds an account on L2 (local devnet only)
+   * Deploys multiple Starknet accounts on-chain
+   * @param indices Array of account indices to deploy. If not provided, deploys all accounts.
    */
-  async fundL2(
-    targetAddress: string,
-    amount: ethers.BigNumberish
-  ): Promise<string> {
-    this.logger.info(`Funding L2 address ${targetAddress} with ${amount}`);
+  async deployAccounts(
+    config: TestConfig,
+    l2Gateway: L2Gateway,
+    indices?: number[]
+  ): Promise<void> {
+    // If no indices provided, deploy all accounts
+    const accountIndices = indices || Array.from({ length: this.accounts.length }, (_, i) => i);
     
-    // In a real implementation, this would use a proper Starknet transaction
-    // For this demo, we'll just return a placeholder transaction hash
-    const txHash = `0x${Buffer.from(`fund-${targetAddress}-${amount.toString()}`).toString('hex')}`;
-    this.logger.debug(`L2 funding simulation, tx: ${txHash}`);
-    return txHash;
+    this.logger.info(`Deploying ${accountIndices.length} Starknet accounts...`);
+    
+    for (const index of accountIndices) {
+      try {
+        await this.deployAccount(index, config, l2Gateway);
+      } catch (error) {
+        this.logger.error(`Failed to deploy account ${index}: ${(error as Error).message}`);
+        // Continue with other accounts even if one fails
+      }
+    }
+    
+    this.logger.info(`Completed account deployment process`);
   }
 } 

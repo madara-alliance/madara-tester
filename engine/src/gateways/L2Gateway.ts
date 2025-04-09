@@ -1,5 +1,5 @@
 import { RpcProvider } from 'starknet';
-import { TestAccount } from '../accounts/types';
+import { Account } from '../accounts/types';
 import { getComponentLogger } from '../utils/logger';
 import { TestConfig } from '../types';
 
@@ -77,7 +77,7 @@ export class L2Gateway {
     contractAddress: string,
     entryPoint: string,
     calldata: any[] | object,
-    account: TestAccount
+    account: Account
   ): Promise<InvokeTransactionResponse> {
     this.logger.debug(`Invoking function ${entryPoint} on contract ${contractAddress}`);
     
@@ -137,7 +137,7 @@ export class L2Gateway {
    */
   async declareContract(
     contractPayload: DeclareContractPayload,
-    account: TestAccount
+    account: Account
   ): Promise<DeclareContractResponse> {
     this.logger.info(`Declaring contract class`);
     
@@ -158,7 +158,7 @@ export class L2Gateway {
    */
   async deployContract(
     deployPayload: DeployContractPayload,
-    account: TestAccount
+    account: Account
   ): Promise<DeployContractResponse> {
     this.logger.info(`Deploying contract from class ${deployPayload.classHash}`);
     
@@ -191,7 +191,7 @@ export class L2Gateway {
    */
   async sendMessageToL1(
     payload: L2ToL1MessagePayload,
-    account: TestAccount
+    account: Account
   ): Promise<InvokeTransactionResponse> {
     this.logger.info(`Sending message to L1 address ${payload.toAddress}`);
     

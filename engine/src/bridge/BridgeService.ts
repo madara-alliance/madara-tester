@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { TestAccount } from '../accounts/types';
+import { Account } from '../accounts/types';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
 import { getComponentLogger } from '../utils/logger';
@@ -34,7 +34,7 @@ export class BridgeService {
    */
   async depositETH(
     amount: ethers.BigNumberish,
-    l1SignerAccount: TestAccount,
+    l1SignerAccount: Account,
     l2RecipientAddress?: string
   ): Promise<ethers.TransactionResponse> {
     const recipient = l2RecipientAddress || l1SignerAccount.l2Address;
@@ -60,7 +60,7 @@ export class BridgeService {
    */
   async initiateWithdrawETH(
     amount: ethers.BigNumberish,
-    l2SignerAccount: TestAccount,
+    l2SignerAccount: Account,
     l1RecipientAddress?: string
   ): Promise<any> { // Starknet specific response type
     const recipient = l1RecipientAddress || l2SignerAccount.l1Address;
@@ -84,7 +84,7 @@ export class BridgeService {
    */
   async claimWithdrawETH(
     withdrawalProofData: any,
-    l1SignerAccount: TestAccount
+    l1SignerAccount: Account
   ): Promise<ethers.TransactionResponse> {
     this.logger.info(`Claiming withdrawal for ${l1SignerAccount.l1Address}`);
     

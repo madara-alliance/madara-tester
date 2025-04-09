@@ -2,6 +2,10 @@
  * Type definitions for the test engine components
  */
 
+import { AccountConfig } from "../accounts/types";
+
+
+// TODO: check all these types, should be replaced with the actual types in the corresponding types.ts files
 /**
  * Configuration returned from the API server
  * Placeholder that will be populated with more fields later
@@ -43,15 +47,23 @@ export interface TestConfig {
       l1BlockNumber?: number | 'latest';
     };
   };
-  accounts: {
-    mnemonic: string;
-    name?: string;
-    localFunding?: {
-      l1Eth?: string;
-      l2Eth?: string;
-    };
-    signerType: 'file';
+
+  AccountsConfig: AccountConfig[];
+
+  /**
+   * Starknet account contracts configuration
+   */
+  starknetAccounts?: {
+    /**
+     * Braavos account contract class hash
+     */
+    braavosClassHash?: string;
+    /**
+     * Argent account contract class hash
+     */
+    argentClassHash?: string;
   };
+
   contracts: {
     [key: string]: string | { [env: string]: string };
   };
@@ -63,17 +75,12 @@ export interface TestConfig {
   };
 }
 
-export interface ResolvedRpcUrls {
-  l1RpcUrl: string;
-  l2RpcUrl: string;
-}
-
-export interface TestContext {
-  config: TestConfig;
-  accounts: any; // Will be replaced with AccountsManager
-  l1: any; // Will be replaced with L1Gateway
-  l2: any; // Will be replaced with L2Gateway
-  bridge: any; // Will be replaced with BridgeService
-  verifier: any; // Will be replaced with StateVerifier
-  environment: any; // Will be replaced with EnvironmentManager
-} 
+// export interface TestContext {
+//   config: TestConfig;
+//   accounts: any; // Will be replaced with AccountsManager
+//   l1: any; // Will be replaced with L1Gateway
+//   l2: any; // Will be replaced with L2Gateway
+//   bridge: any; // Will be replaced with BridgeService
+//   verifier: any; // Will be replaced with StateVerifier
+//   environment: any; // Will be replaced with EnvironmentManager
+// } 

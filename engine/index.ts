@@ -1,8 +1,8 @@
 import { beforeAll, beforeEach, afterAll, afterEach } from '@jest/globals';
 import { loadConfig } from './src/config/loader';
 import { EnvironmentManager } from './src/environment/EnvironmentManager';
-import { TestContextFactory } from './src/context/TestContext';
-import { TestContext, TestConfig } from './src/types';
+import { TestConfig } from './src/types';
+import { TestContext } from './src/context/Context';
 import { getComponentLogger, setGlobalDebugMode, enableDebugForComponents, LoggerConfig } from './src/utils/logger';
 
 // Declare global augmentation for TypeScript
@@ -18,9 +18,8 @@ declare global {
 }
 
 // Export core components and types
-export * from './src/accounts/Signer';
+export * from './src/accounts/signer/Signer';
 export * from './src/accounts/types';
-export { TestContext, TestConfig } from './src/types';
 export { setGlobalDebugMode, enableDebugForComponents, LoggerConfig };
 
 // Logger
@@ -34,9 +33,9 @@ let _config: TestConfig | null = null;
 /**
  * Sets up the test environment and context
  */
-export async function setupTestEnvironment(configPath?: string): Promise<TestContext> {
+export async function setupTestEnvironment(engineConfigPath?: string): Promise<TestContext> {
   // Load and resolve configuration
-  const config = await loadConfig(configPath);
+  const config = await loadConfig(engineConfigPath);
   _config = config;
   
   logger.info(`Setting up test environment in ${config.mode} mode`);
@@ -44,31 +43,14 @@ export async function setupTestEnvironment(configPath?: string): Promise<TestCon
   // Create environment manager
   const environment = new EnvironmentManager(config);
   _environment = environment;
-  
-  // Start environment
-  await environment.up(config.mode, config);
+
   
   // Create test context
-  const contextFactory = new TestContextFactory();
-  const context = await contextFactory.createContext(config, environment);
+  const context = await TestContext.createContext(config, environment);
   _context = context;
   
   logger.info('Test environment ready');
   return context;
-}
-
-/**
- * Tears down the test environment
- */
-export async function teardownTestEnvironment(): Promise<void> {
-  if (_environment) {
-    logger.info('Tearing down test environment');
-    await _environment.down();
-    _environment = null;
-    _context = null;
-    _config = null;
-    logger.info('Test environment shut down');
-  }
 }
 
 /**
@@ -89,7 +71,6 @@ export function registerJestHooks(configPath?: string): void {
   
   // afterAll hook - tears down the environment
   afterAll(async () => {
-    await teardownTestEnvironment();
     // Clean up global reference
     global.__testContext = undefined;
   });
