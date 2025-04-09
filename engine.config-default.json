@@ -1,0 +1,36 @@
+{
+  "mode": "local",
+  "l1": {
+    "rpcUrl": "http://localhost:8080/node/l1",
+    "chainId": 31337
+  },
+  "l2": {
+    "rpcUrl": "http://localhost:8080/node/l2"
+  },
+  "environment": {
+    "fork": {
+      "l1BlockNumber": "latest"
+    }
+  },
+  "AccountsConfig": [
+    {
+      "mnemonic": "test test test test test test test test test test test junk",
+      "name": "Default Test Account",
+      "signerType": "file"
+    }
+  ],
+  "contracts": {
+    "l1CoreContractAddress": "0x0000000000000000000000000000000000000001",
+    "l2CoreContractAddress": "0x0000000000000000000000000000000000000001"
+  },
+  "logging": {
+    "level": "debug",
+    "components": {
+      "EnvironmentManager": "debug",
+      "L1Gateway": "debug",
+      "L2Gateway": "debug",
+      "BridgeService": "debug",
+      "StateVerifier": "debug"
+    }
+  }
+} 

@@ -10,11 +10,11 @@ const packageRootDir = path.resolve(__dirname, '../../');
 /**
  * Default configuration file path
  */
-const DEFAULT_CONFIG_PATH = path.join(packageRootDir, 'engine.config-default.ts');
+const DEFAULT_CONFIG_PATH = path.join(packageRootDir, 'engine.config-default.json');
 
 /**
  * Loads the test configuration from the specified path
- * Defaults to the built-in engine.config-default.ts
+ * Defaults to the built-in engine.config-default.json
  */
 export async function loadConfig(configPath: string = DEFAULT_CONFIG_PATH): Promise<TestConfig> {
   try {
@@ -23,12 +23,12 @@ export async function loadConfig(configPath: string = DEFAULT_CONFIG_PATH): Prom
       ? configPath 
       : path.resolve(process.cwd(), configPath);
     
-    // Dynamic import for the configuration file
-    const configModule = await import(absolutePath);
-    const config = configModule.default as TestConfig;
+    // Read and parse the JSON file
+    const fileContent = fs.readFileSync(absolutePath, 'utf8');
+    const config = JSON.parse(fileContent) as TestConfig;
     
     if (!config) {
-      throw new Error(`Configuration file at ${absolutePath} must export a default configuration object`);
+      throw new Error(`Configuration file at ${absolutePath} is invalid or empty`);
     }
     
     console.log('Loaded config from file:', configPath);
@@ -38,7 +38,7 @@ export async function loadConfig(configPath: string = DEFAULT_CONFIG_PATH): Prom
     if (configPath !== DEFAULT_CONFIG_PATH) {
       console.warn(`Error loading config from ${configPath}: ${(error as Error).message}`);
       console.warn('Falling back to built-in default configuration');
-      return loadConfig(DEFAULT_CONFIG_PATH);
+      return loadConfig();
     }
     
     // If we're already trying to load the default and it fails, rethrow

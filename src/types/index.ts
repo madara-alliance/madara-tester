@@ -47,7 +47,6 @@ export interface TestConfig {
   apiServerUrl?: string;
   environment: {
     type: 'local' | 'testnet' | 'mainnet' | 'mainnet-fork';
-    madaraCliPath: string;
     fork?: {
       l1RpcUrl?: string;
       l1BlockNumber?: number | 'latest';

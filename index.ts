@@ -26,6 +26,8 @@ export { L2Gateway } from './src/gateways/L2Gateway';
 export { StateVerifier } from './src/verifier/StateVerifier';
 export { AccountsManager } from './src/accounts/AccountsManager';
 export { setGlobalDebugMode, enableDebugForComponents, LoggerConfig };
+export { loadConfig } from './src/config/loader';
+export { EnvironmentManager } from './src/environment/EnvironmentManager';
 
 // Logger
 const logger = getComponentLogger('TestEngine');
@@ -72,7 +74,6 @@ export function registerJestHooks(configPath?: string): void {
     global.__testContext = undefined;
   });
 }
-
 /**
  * Gets the current test context
  * Simple wrapper around the global reference that provides proper typing
