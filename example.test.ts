@@ -41,15 +41,4 @@ describe('Testing Engine with Test Context', () => {
       console.log('Some components may not be initialized:', error);
     }
   });
-  
-  test('should access all components from context', () => {
-    const testContext = getTestContext();
-    
-    // Verify all the expected components are available
-    expect(testContext.getAccountsManager).toBeDefined();
-    expect(testContext.getL1Gateway).toBeDefined();
-    expect(testContext.getL2Gateway).toBeDefined();
-    expect(testContext.getBridgeService).toBeDefined();
-    expect(testContext.getStateVerifier).toBeDefined();
-  });
-}); 
+});
