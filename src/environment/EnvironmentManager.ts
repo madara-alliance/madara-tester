@@ -28,16 +28,16 @@ export class EnvironmentManager {
    */
   async getConfigFromAPIServer(url: string): Promise<ServerConfig> {
     this.logger.info(`Fetching configuration from API server at ${url}`);
-    
+
     try {
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      const serverConfig = await response.json() as ServerConfig;
-      
+
+      const serverConfig = (await response.json()) as ServerConfig;
+
       this.serverConfig = serverConfig;
       this.logger.debug(`Received server config: ${JSON.stringify(serverConfig)}`);
       return serverConfig;
@@ -52,14 +52,10 @@ export class EnvironmentManager {
    */
   applyServerConfigToTestConfig(serverConfig: ServerConfig): TestConfig {
     this.logger.debug('Applying server configuration to test config');
-    
+
     // Create a copy of the current config
     const updatedConfig = { ...this.config };
-    
-    // Update L1 configuration
-    if (!updatedConfig.l1) {
-      updatedConfig.l1 = {};
-    }
+
     // Always override with server config values if they exist
     if (serverConfig.l1RpcUrl) {
       updatedConfig.l1.rpcUrl = serverConfig.l1RpcUrl;
@@ -67,11 +63,7 @@ export class EnvironmentManager {
     if (serverConfig.l1ChainId) {
       updatedConfig.l1.chainId = serverConfig.l1ChainId;
     }
-    
-    // Update L2 configuration
-    if (!updatedConfig.l2) {
-      updatedConfig.l2 = {};
-    }
+
     // Always override with server config value if it exists
     if (serverConfig.l2RpcUrl) {
       updatedConfig.l2.rpcUrl = serverConfig.l2RpcUrl;
@@ -80,16 +72,10 @@ export class EnvironmentManager {
       // Using type assertion as a workaround
       (updatedConfig.l2 as any).chainId = serverConfig.l2ChainId;
     }
-    
+
     // Update contract addresses if provided
-    if (serverConfig.contractAddresses && Object.keys(serverConfig.contractAddresses).length > 0) {
-      if (!updatedConfig.contracts) {
-        updatedConfig.contracts = {};
-      }
-      // Replace contract addresses with server config
-      updatedConfig.contracts = { ...serverConfig.contractAddresses };
-    }
-    
+    // TODO: add needed contract, token and bridge addresses
+
     this.config = updatedConfig;
     return updatedConfig;
   }

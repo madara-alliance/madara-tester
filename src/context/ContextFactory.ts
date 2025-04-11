@@ -12,13 +12,11 @@ import { getComponentLogger } from '../utils/logger';
  */
 export class ContextFactory {
   private logger = getComponentLogger('TestContext');
-  
+
   /**
    * Assembles a TestContext instance with all components
    */
-  async create(
-    config: TestConfig,
-  ): Promise<TestContext> {
+  async create(config: TestConfig): Promise<TestContext> {
     this.logger.info('Assembling test context');
 
     // Create environment manager
@@ -27,23 +25,16 @@ export class ContextFactory {
     // Create the gateways
     const l1Gateway = new L1Gateway(config);
     const l2Gateway = new L2Gateway(config);
-    
+
     // Create the accounts manager
-    const accountsManager = new AccountsManager();
-    
-    // Initialize accounts with the gateway providers
-    await accountsManager.initialize(
-      config.AccountsConfig,
-      l1Gateway,
-      l2Gateway
-    );
-    
+    const accountsManager = new AccountsManager(config);
+
     // Create the bridge service
     // TODO: init bridge component
-    
+
     // Create the state verifier
     const stateVerifier = new StateVerifier(l1Gateway, l2Gateway);
-    
+
     // Assemble the context
     const context: TestContext = {
       getAccountsManager: () => accountsManager,
@@ -51,10 +42,10 @@ export class ContextFactory {
       getL2Gateway: () => l2Gateway,
       getBridgeService: () => null,
       getStateVerifier: () => stateVerifier,
-      getEnvironmentManager: () => environment
+      getEnvironmentManager: () => environment,
     };
-    
+
     this.logger.debug('Test context assembled');
     return context;
   }
-} 
+}

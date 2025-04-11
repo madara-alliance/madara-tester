@@ -1,19 +1,27 @@
 import pino from 'pino';
+import pretty from 'pino-pretty'; 
 import { TestConfig } from '../types';
 
 // Global logger configuration
 export const LoggerConfig = {
   // Set to true to enable DEBUG level for all components
   DEBUG: process.env.DEBUG_LOGGING === 'true',
-  
+
   // Set to false to disable all logging
   ENABLED: process.env.DISABLE_LOGGING !== 'true',
-  
+
   // Allow specific components to be included/excluded from debug logging
   // Format: comma-separated list of component names
   // e.g. "TestEngine,L1Gateway,AccountsManager"
-  DEBUG_COMPONENTS: process.env.DEBUG_COMPONENTS?.split(',') || []
+  DEBUG_COMPONENTS: process.env.DEBUG_COMPONENTS?.split(',') || [],
 };
+
+const prettyStream = pretty({
+  colorize: true,
+  ignore: 'pid,hostname',
+  messageFormat: '[{name}] {msg}',
+  sync: true, // Force synchronous writing
+});
 
 /**
  * Creates a logger instance for a specific component
@@ -23,10 +31,10 @@ export function createLogger(componentName: string, config?: TestConfig) {
   if (!LoggerConfig.ENABLED) {
     return pino({ level: 'silent' });
   }
-  
+
   // Check if this component should get debug logging from the environment config
   const isComponentInDebugList = LoggerConfig.DEBUG_COMPONENTS.includes(componentName);
-  
+
   // Determine log level with priority:
   // 1. Component-specific config from TestConfig
   // 2. Global DEBUG flag or component in DEBUG_COMPONENTS list
@@ -34,9 +42,9 @@ export function createLogger(componentName: string, config?: TestConfig) {
   // 4. Default to 'info'
   const configLevel = config?.logging?.components?.[componentName];
   const globalConfigLevel = config?.logging?.level;
-  
+
   let level: string;
-  
+
   if (configLevel) {
     // Use component-specific config if available
     level = configLevel;
@@ -47,19 +55,11 @@ export function createLogger(componentName: string, config?: TestConfig) {
     // Fall back to global config level or default info
     level = globalConfigLevel || 'info';
   }
-  
+
   return pino({
     name: componentName,
     level,
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        ignore: 'pid,hostname',
-        messageFormat: '[{level}] [{name}] {msg}'
-      }
-    }
-  });
+  }, prettyStream); 
 }
 
 /**
@@ -88,4 +88,4 @@ export function setGlobalDebugMode(enabled: boolean): void {
 export function enableDebugForComponents(componentNames: string[]): void {
   LoggerConfig.DEBUG_COMPONENTS = componentNames;
   console.log(`Debug logging enabled for components: ${componentNames.join(', ')}`);
-} 
+}

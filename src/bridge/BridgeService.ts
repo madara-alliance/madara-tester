@@ -13,7 +13,7 @@ export class BridgeService {
   private l2Gateway: L2Gateway;
   private l1BridgeAddress: string;
   private l2BridgeAddress: string;
-  
+
   constructor(
     l1Gateway: L1Gateway,
     l2Gateway: L2Gateway,
@@ -24,9 +24,11 @@ export class BridgeService {
     this.l2Gateway = l2Gateway;
     this.l1BridgeAddress = l1BridgeAddress;
     this.l2BridgeAddress = l2BridgeAddress;
-    
-    this.logger.debug(`BridgeService initialized with L1 bridge: ${l1BridgeAddress}, L2 bridge: ${l2BridgeAddress}`);
+
+    this.logger.debug(
+      `BridgeService initialized with L1 bridge: ${l1BridgeAddress}, L2 bridge: ${l2BridgeAddress}`
+    );
   }
-  
+
   // TODO: Implement bridge service
-} 
+}

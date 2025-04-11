@@ -1,11 +1,20 @@
 {
   "mode": "local",
   "l1": {
-    "rpcUrl": "http://localhost:8080/node/l1",
-    "chainId": 31337
+    "rpcUrl": "http://localhost:8545",
+    "chainId": 31337,
+    "contracts": {
+      "coreContractAddress": "0x0000000000000000000000000000000000000001"
+    }
   },
   "l2": {
-    "rpcUrl": "http://localhost:8080/node/l2"
+    "rpcUrl": "http://localhost:9945",
+    "contracts": {
+      "coreContractAddress": "0x0000000000000000000000000000000000000001",
+      "braavosClassHash": "0x2c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
+      "argentClassHash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+      "ozClassHash":"0x1484c93b9d6cf61614d698ed069b3c6992c32549194fc3465258c2194734189"
+      }
   },
   "environment": {
     "fork": {
@@ -14,15 +23,11 @@
   },
   "AccountsConfig": [
     {
-      "mnemonic": "test test test test test test test test test test test junk",
-      "name": "Default Test Account",
-      "signerType": "file"
+      "random":  "true",
+      "name": "Default1",
+      "accountType": "oz"
     }
   ],
-  "contracts": {
-    "l1CoreContractAddress": "0x0000000000000000000000000000000000000001",
-    "l2CoreContractAddress": "0x0000000000000000000000000000000000000001"
-  },
   "logging": {
     "level": "debug",
     "components": {

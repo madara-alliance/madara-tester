@@ -1,5 +1,4 @@
-export type SignerTypeFile = 'file';
-
+export const SignerTypeFile = 'file';
 
 /**
  * Configuration for file-based signer

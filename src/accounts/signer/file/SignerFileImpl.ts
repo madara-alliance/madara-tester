@@ -1,52 +1,68 @@
-import { Wallet, BytesLike, TransactionRequest } from 'ethers';
-import { ec, constants, hash } from 'starknet';
+import { Wallet, TransactionRequest } from 'ethers';
+import { ec, hash } from 'starknet';
 import { Signer } from '../Signer';
 import { getComponentLogger } from '../../../utils/logger';
+import { SignerFileConfig } from './types';
+import fs from 'fs';
 
 /**
- * File-based signer implementation that uses a private key
+ * File-based signer implementation that uses a private key loaded from a file
  */
 export class SignerFileImpl implements Signer {
+  public config: SignerFileConfig;
   private ethWallet: Wallet;
-  private starkPrivateKey: string;
   private logger = getComponentLogger('SignerFileImpl');
-  
+
   /**
    * Creates a new file-based signer
    * @param privateKey The private key as a hex string (for Ethereum)
    * @param starkPrivateKey The private key for StarkNet (optional, generated from Ethereum key if not provided)
    */
-  constructor(privateKey: string, starkPrivateKey?: string) {
+  constructor(config: SignerFileConfig) {
+    const privateKey = this.readAndValidatePrivateKey(config.privateKeyPath);
     this.ethWallet = new Wallet(privateKey);
-    
-    // If no StarkNet private key is provided, derive one from the Ethereum key
-    // This is just one approach - in production you might want a more secure derivation
-    if (!starkPrivateKey) {
-      // Generate a StarkNet private key by hashing the Ethereum private key
-      // This is simplified - a real implementation would use a more robust approach
-      const ethPrivateKeyBytes = Buffer.from(privateKey.replace(/^0x/, ''), 'hex');
-      const hash = Buffer.from(ethPrivateKeyBytes).toString('hex');
-      // Ensure it's a valid StarkNet private key (smaller than the prime field size)
-      this.starkPrivateKey = `0x${hash.slice(0, 62)}`;
-    } else {
-      this.starkPrivateKey = starkPrivateKey;
-    }
-    
-    // Ensure the private key is properly formatted
-    if (!this.starkPrivateKey.startsWith('0x')) {
-      this.starkPrivateKey = `0x${this.starkPrivateKey}`;
-    }
-    
-    this.logger.debug(`Created signer for Ethereum address: ${this.ethWallet.address}`);
+    this.config = config;
+    this.logger.debug(`Created File-based signer for Ethereum address: ${this.ethWallet.address}`);
   }
-  
+
   /**
-   * Gets the Ethereum address associated with this signer
+   * Reads and validates a private key from the specified file path
+   * @param filePath Path to the file containing the private key
+   * @returns The validated private key
+   * @throws Error if the file doesn't exist or the private key is invalid
    */
-  async getAddress(): Promise<string> {
-    return this.ethWallet.address;
+  private readAndValidatePrivateKey(filePath: string): string {
+    try {
+      this.logger.debug(`Reading private key from file: ${filePath}`);
+      const privateKey = fs.readFileSync(filePath, 'utf8').trim();
+
+      // Validate format of the private key
+      if (!privateKey.startsWith('0x')) {
+        throw new Error('Private key must start with 0x');
+      }
+
+      // Validate length of the private key
+      if (privateKey.length !== 66) {
+        throw new Error('Private key must be 66 characters long');
+      }
+
+      return privateKey;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(`Private key file not found at path: ${filePath}`);
+      }
+      // Re-throw validation errors or other errors
+      throw error;
+    }
   }
-  
+
+  /**
+   * Gets the public key associated with this signer
+   */
+  async getPublicKey(): Promise<string> {
+    return '0x' + Buffer.from(this.ethWallet.address.slice(2), 'hex').toString('hex');
+  }
+
   /**
    * Signs an Ethereum transaction using ECDSA over secp256k1
    */
@@ -54,35 +70,44 @@ export class SignerFileImpl implements Signer {
     this.logger.debug(`Signing Ethereum transaction to: ${transaction.to}`);
     return await this.ethWallet.signTransaction(transaction);
   }
-  
+
   /**
    * Signs a StarkNet transaction using the STARK curve and Pedersen hash
-   * Note: The transaction parameter uses TransactionRequest for compatibility,
-   * but it should be adapted for StarkNet-specific fields
+   * Note: The transaction parameter uses TransactionRequest for compatibility
    */
   async signL2Transaction(transaction: TransactionRequest): Promise<string> {
     this.logger.debug(`Signing StarkNet transaction`);
-    
-    // For a proper implementation, this should be using StarkNet-specific types
-    // This is a simplified implementation that extracts data from the generic TransactionRequest
-    
-    // Extract transaction data from Ethereum format (not ideal, but working with the interface)
-    const contractAddress = transaction.to as string;
+
+    // Read the private key from the file
+    let starkPrivateKey;
+    try {
+      starkPrivateKey = this.readAndValidatePrivateKey(this.config.privateKeyPath);
+    } catch (error) {
+      this.logger.error(`Error reading private key file: ${(error as Error).message}`);
+      throw new Error(
+        `Failed to read private key from ${this.config.privateKeyPath}: ${(error as Error).message}`
+      );
+    }
+
+    // Extract transaction data
     const data = transaction.data ? transaction.data.toString() : '';
-    
-    // Create a hash of the message to sign
-    // In a real implementation, you would properly format the message based on StarkNet transaction structure
+
+    // Create a simplified hash for this demo implementation
     const messageHash = hash.getSelectorFromName(data || 'execute');
-    
+
     try {
       // Sign the hash using StarkNet's signature scheme
-      const signature = ec.starkCurve.sign(messageHash, this.starkPrivateKey);
-      
+      const signature = ec.starkCurve.sign(messageHash, starkPrivateKey);
+
       // Format and return the signature as required by StarkNet
       return `0x${signature.r.toString(16)},0x${signature.s.toString(16)}`;
     } catch (error) {
       this.logger.error(`Error signing StarkNet transaction: ${(error as Error).message}`);
       throw error;
     }
+  }
+
+  getPrivateKey(): string {
+    return this.readAndValidatePrivateKey(this.config.privateKeyPath);
   }
 }

@@ -1,36 +1,45 @@
 import { Signer } from './signer/Signer';
-import {SignerTypeFile } from './signer/file/types';
 /**
  * Represents a testing identity with associated signers for L1 and L2
  */
 export interface Account {
-  name?: string;
-  privateKey: string;
+  /**
+   * Optional name for the account
+   */
+  name: string;
+  /**
+   * L1 address associated with the account
+   */
   l1Address: string;
+  /**
+   * L1 public key associated with the account
+   */
+  l1PublicKey: string;
+  /**
+   * L2 address associated with the account
+   */
   l2Address: string;
-  signer: Signer;
+  /**
+   * L2 public key associated with the account
+   */
+  l2PublicKey: string;
+  /**
+   * L2 private key associated with the account
+   */
+  l2PrivateKey: string;
+  /**
+   * Signer instance associated with the account
+   */
+  signer: any;
   /**
    * Whether this account has been deployed on-chain
    */
-  deployed?: boolean;
-  /**
-   * L2 public key derived from private key
-   */
-  L2PublicKey?: string;
+  deployed: boolean;
   /**
    * The type of L2 account contract (Braavos or Argent)
    */
-  accountType?: 'braavos' | 'argent';
-  /**
-   * The class hash used for deploying this account
-   */
-  classHash?: string;
-  /**
-   * The transaction hash of the account deployment transaction
-   */
-  deployTxHash?: string;
-} 
-
+  accountType: 'braavos' | 'argent' | 'oz';
+}
 
 /**
  * Type for account configuration
@@ -39,22 +48,25 @@ export type AccountConfig = {
   /**
    * Whether to generate random accounts instead of using the mnemonic
    */
-  random?: boolean;
+  random: boolean;
   /**
    * Mnemonic phrase used to derive account private keys
    */
   mnemonic: string;
   /**
-   * Optional name for the account
+   * Name for the account
    */
-  name?: string;
+  name: string;
   /**
    * Type of signer to use for this account
-   * When adding other signer types, add them here
    */
-  signerType: SignerTypeFile;
+  signerType: string;
   /**
-   * Account contract type to use (Braavos or Argent)
+   * Configuration for the signer
    */
-  accountType?: 'braavos' | 'argent';
+  signerConfig: any;
+  /**
+   * Account contract type to use (Braavos or Argent or OZ)
+   */
+  accountType: 'braavos' | 'argent' | 'oz';
 };

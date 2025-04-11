@@ -19,19 +19,18 @@ const DEFAULT_CONFIG_PATH = path.join(packageRootDir, 'engine.config-default.jso
 export async function loadConfig(configPath: string = DEFAULT_CONFIG_PATH): Promise<TestConfig> {
   try {
     // Resolve to absolute path if relative
-    const absolutePath = path.isAbsolute(configPath) 
-      ? configPath 
+    const absolutePath = path.isAbsolute(configPath)
+      ? configPath
       : path.resolve(process.cwd(), configPath);
-    
+
     // Read and parse the JSON file
     const fileContent = fs.readFileSync(absolutePath, 'utf8');
     const config = JSON.parse(fileContent) as TestConfig;
-    
+
     if (!config) {
       throw new Error(`Configuration file at ${absolutePath} is invalid or empty`);
     }
-    
-    console.log('Loaded config from file:', configPath);
+
     return config;
   } catch (error) {
     // If the specified file fails to load, fall back to the built-in default
@@ -40,8 +39,8 @@ export async function loadConfig(configPath: string = DEFAULT_CONFIG_PATH): Prom
       console.warn('Falling back to built-in default configuration');
       return loadConfig();
     }
-    
+
     // If we're already trying to load the default and it fails, rethrow
     throw new Error(`Error loading default config: ${(error as Error).message}`);
   }
-} 
+}
