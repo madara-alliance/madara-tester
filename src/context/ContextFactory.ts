@@ -1,8 +1,8 @@
-import { TestConfig, TestContext } from '../types';
+import { TestConfig } from '../config/types';
+import { TestContext } from '../types';
 import { AccountsManager } from '../accounts/AccountsManager';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
-import { BridgeService } from '../bridge/BridgeService';
 import { StateVerifier } from '../verifier/StateVerifier';
 import { EnvironmentManager } from '../environment/EnvironmentManager';
 import { getComponentLogger } from '../utils/logger';

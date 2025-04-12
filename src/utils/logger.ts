@@ -1,6 +1,6 @@
 import pino from 'pino';
-import pretty from 'pino-pretty'; 
-import { TestConfig } from '../types';
+import pretty from 'pino-pretty';
+import { TestConfig } from '../config/types';
 
 // Global logger configuration
 export const LoggerConfig = {
@@ -56,10 +56,13 @@ export function createLogger(componentName: string, config?: TestConfig) {
     level = globalConfigLevel || 'info';
   }
 
-  return pino({
-    name: componentName,
-    level,
-  }, prettyStream); 
+  return pino(
+    {
+      name: componentName,
+      level,
+    },
+    prettyStream
+  );
 }
 
 /**

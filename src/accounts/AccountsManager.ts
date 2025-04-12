@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import { Account as StarknetAccount, CallData, ec, hash, stark } from 'starknet';
-import { Account } from './types';
+import { Account, AccountConfig, AccountType } from './types';
 import { Signer } from './signer/Signer';
-import { TestConfig } from '../types';
+import { TestConfig } from '../config/types';
 import { getComponentLogger } from '../utils/logger';
 import { L2Gateway } from '../gateways/L2Gateway';
 import { createSigner } from './signer/factory';
@@ -13,6 +13,7 @@ import { SignerTypeMemory } from './signer/memory/types';
  */
 export class AccountsManager {
   private accounts: Account[] = [];
+  private accountsMap: Record<string, Account> = {};
   private logger = getComponentLogger('AccountsManager');
 
   globalConfig: TestConfig;
@@ -23,23 +24,37 @@ export class AccountsManager {
   }
 
   /**
-   * Initializes the account pool from configuration
+   *  Creates accounts based on the configuration
    */
-  createAccounts(): void {
+  createAccountsFromConfig(): void {
     this.logger.debug(
       `Initializing account pool with ${this.globalConfig.AccountsConfig.length} accounts`
     );
 
     for (const accountConfig of this.globalConfig.AccountsConfig) {
-      let account: Account | undefined;
-      let created = false;
-
-      if (!created && accountConfig.random) {
-        account = this.createRandom(accountConfig.name, accountConfig.accountType);
-        created = true;
+      const account = this.createAccount(accountConfig);
+      
+      if (!account) {
+        continue;
       }
 
-      if (!created && accountConfig.mnemonic) {
+      this.logger.debug(`Added account: ${account.name}, (${account.l1Address})`);
+    }
+
+    this.logger.debug(`Initialized ${this.accounts.length} accounts`);
+  }
+
+   /**
+   * Creates an account from a configuration
+   */
+    createAccount(accountConfig: AccountConfig): Account | undefined {
+      let account: Account | undefined;
+      
+      if (accountConfig.random) {
+        account = this.createRandom(accountConfig.name, accountConfig.accountType);
+      }
+      
+      if (accountConfig.mnemonic) {
         account = this.createFromMnemonic(
           accountConfig.mnemonic,
           accountConfig.name,
@@ -47,22 +62,18 @@ export class AccountsManager {
           accountConfig.signerType,
           accountConfig.signerConfig
         );
-        created = true;
       }
-
-      if (!created || !account) {
+      
+      if (!account) {
         this.logger.warn(
-          `Skipping account "${accountConfig.name}" config with no mnemonic or random flag set`
+          `Cannot create account "${accountConfig.name}" - no mnemonic or random flag set`
         );
-        continue;
+        return undefined;
       }
-
-      this.accounts.push(account);
-      this.logger.debug(`Added account: ${account.name}, (${account.l1Address})`);
+      
+      this.addAccount(account);
+      return account;
     }
-
-    this.logger.debug(`Initialized ${this.accounts.length} accounts`);
-  }
 
   /**
    * Deploys multiple Starknet accounts on-chain
@@ -90,7 +101,7 @@ export class AccountsManager {
   createFromMnemonic(
     mnemonic: string,
     name: string,
-    accountType: 'braavos' | 'argent' | 'oz',
+    accountType: AccountType,
     signerType: string,
     signerConfig: any
   ): Account {
@@ -101,7 +112,7 @@ export class AccountsManager {
   /**
    * Creates a new random account
    */
-  createRandom(name: string, accountType: 'braavos' | 'argent' | 'oz'): Account {
+  createRandom(name: string, accountType: AccountType): Account {
     // Generate random L1 wallet
     const wallet = ethers.Wallet.createRandom();
     const l1PrivateKey = wallet.privateKey;
@@ -123,36 +134,42 @@ export class AccountsManager {
       0
     );
 
-    // Create signer with the Starknet-compatible private key
-    const signer: Signer = createSigner(SignerTypeMemory, { privateKey: l1PrivateKey });
+    const l1Signer = wallet;
+    const l2Signer = ec.starkCurve
 
     const account: Account = {
-      name: name,
+      name,
       l1Address,
       l1PublicKey,
+      l1PrivateKey,
       l2Address,
       l2PublicKey,
       l2PrivateKey,
-      signer,
+      getL1Signer: () => l1Signer,
+      getL2Signer: () => l2Signer,
       accountType,
       deployed: false,
     };
 
     this.logger.debug(
-      `Created random account: ${account.name} (L1: ${account.l1Address}, L2: ${account.l2Address})`
+      `Created random account: ${account.name} (L1 address: ${account.l1Address}, L2 address: ${account.l2Address})`
     );
 
     return account;
   }
 
   /**
-   * Gets a pre-configured account by its index
+   * Gets a pre-configured account by its name
+   * @param name The name of the account to retrieve
+   * @returns The account with the specified name
+   * @throws Error if no account with the given name exists
    */
-  get(index: number): Account {
-    if (index < 0 || index >= this.accounts.length) {
-      throw new Error(`Account index out of bounds: ${index}`);
+  get(name: string): Account {
+    const account = this.accountsMap[name];
+    if (!account) {
+      throw new Error(`Account with name "${name}" not found`);
     }
-    return this.accounts[index];
+    return account;
   }
 
   /**
@@ -185,7 +202,7 @@ export class AccountsManager {
   /**
    * Gets the class hash for a specific account type
    */
-  private getAccountTypeClassHash(accountType: 'braavos' | 'argent' | 'oz'): string {
+  private getAccountTypeClassHash(accountType: AccountType): string {
     let classHash: string | undefined;
 
     switch (accountType) {
@@ -263,4 +280,31 @@ export class AccountsManager {
       throw error;
     }
   }
+
+  /**
+   * Adds an account to the internal collections if no account with the same name exists
+   * @param account The account to add
+   * @returns True if the account was added, false if an account with the same name already exists
+   */
+  private addAccount(account: Account): boolean {
+    if (this.accountsMap[account.name]) {
+      this.logger.warn(`Account with name "${account.name}" already exists`);
+      return false;
+    }
+    
+    this.accounts.push(account);
+    this.accountsMap[account.name] = account;
+    return true;
+  }
+
+   /**
+   * Cleans up all accounts from the manager
+   * Removes all accounts from both the array and the map
+   */
+    cleanup(): void {
+      this.logger.debug(`Cleaning up ${this.accounts.length} accounts`);
+      this.accounts = [];
+      this.accountsMap = {};
+      this.logger.debug('All accounts have been removed');
+    }
 }

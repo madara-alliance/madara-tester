@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
 import { Signer } from '../accounts/signer/Signer';
 import { getComponentLogger } from '../utils/logger';
-import { TestConfig } from '../types';
+import { TestConfig } from '../config/types';
+import { Account } from '../accounts/types';
 
 /**
  * Gateway for interacting with the L1 EVM network
@@ -10,6 +11,8 @@ export class L1Gateway {
   public provider: ethers.Provider;
   private logger = getComponentLogger('L1Gateway');
 
+  globalConfig: TestConfig;
+
   constructor(config: TestConfig) {
     if (!config.l1?.rpcUrl) {
       throw new Error('L1 RPC URL is required in the config');
@@ -17,6 +20,7 @@ export class L1Gateway {
 
     this.provider = new ethers.JsonRpcProvider(config.l1.rpcUrl);
     this.logger.debug(`L1Gateway connected to ${config.l1.rpcUrl}`);
+    this.globalConfig = config;
   }
 
   /**
@@ -50,12 +54,11 @@ export class L1Gateway {
    */
   async sendL1Transaction(
     txRequest: ethers.TransactionRequest,
-    signer: Signer
+    fromAccount: Account
   ): Promise<ethers.TransactionResponse> {
     this.logger.debug(`Sending transaction to ${txRequest.to}`);
 
-    const address = await signer.getAddress();
-    const signedTx = await signer.signL1Transaction(txRequest);
+    const signedTx = await fromAccount.signer.signL1Transaction(txRequest);
 
     try {
       const tx = await this.provider.broadcastTransaction(signedTx);
@@ -118,36 +121,6 @@ export class L1Gateway {
   }
 
   /**
-   * Deploys a contract on L1
-   */
-  async deployContract<T extends ethers.BaseContract>(
-    abi: ethers.InterfaceAbi,
-    bytecode: ethers.BytesLike,
-    args: any[],
-    signer: Signer
-  ): Promise<T> {
-    this.logger.info('Deploying contract');
-
-    const factory = new ethers.ContractFactory(abi, bytecode);
-    const deployTx = factory.getDeployTransaction(...args);
-
-    const tx = await this.sendL1Transaction(
-      deployTx as unknown as ethers.TransactionRequest,
-      signer
-    );
-    this.logger.debug(`Deployment transaction sent: ${tx.hash}`);
-
-    const receipt = await this.waitForTransaction(tx.hash, 1);
-
-    if (receipt && receipt.status === 1 && receipt.contractAddress) {
-      this.logger.info(`Contract deployed at ${receipt.contractAddress}`);
-      return this.getContract<T>(receipt.contractAddress, abi);
-    } else {
-      throw new Error(`Contract deployment failed: ${tx.hash}`);
-    }
-  }
-
-  /**
    * Queries the L1 Core Contract for the settled L2 state root
    * This is a placeholder in the demo implementation
    */
@@ -158,34 +131,30 @@ export class L1Gateway {
   }
 
   /**
-   * Sends a message to L2 via the L1 bridge/messaging contract
-   * This is a placeholder in the demo implementation
+   * Bridges ETH to an L2 account
+   * @param fromAccount - Sender account on L1
+   * @param toAccount - The destination account on L2
+   * @param amount - The amount of ETH to bridge
+   * @returns The transaction hash of the bridge operation
    */
-  async sendMessageToL2(
-    targetContract: string,
-    selector: string,
-    args: any[],
-    fee: ethers.BigNumberish,
-    signer: Signer
-  ): Promise<ethers.TransactionResponse> {
-    this.logger.info(`Sending message to L2 contract ${targetContract}`);
-
-    // In a real implementation, this would call the bridge contract
-    const tx = await this.sendL1Transaction(
-      {
-        to: '0x0000000000000000000000000000000000000001', // Bridge contract placeholder
-        value: fee,
-        data: ethers.concat([
-          ethers.getBytes('0x12345678'), // Function selector placeholder
-          ethers.getBytes(targetContract),
-          ethers.getBytes(selector),
-          ethers.getBytes('0x' + args.map((a) => a.toString(16).padStart(64, '0')).join('')),
-        ]),
-      },
-      signer
+  async bridgeToL2(fromAccount: Account, toAccount: Account, amount: string): Promise<string> {
+    this.logger.info(
+      `Bridging ${amount} ETH to ${toAccount.l2Address} from ${fromAccount.l1Address}`
     );
 
-    this.logger.debug(`L1->L2 message transaction sent: ${tx.hash}`);
-    return tx;
+    const contract = new ethers.Contract(
+      this.globalConfig.l1.contracts.ethBridgeAddress,
+      ['function deposit(uint256, uint256)'],
+      fromAccount.getL1Signer()
+    );
+
+    const amountWithFees = (parseFloat(amount) + 0.01).toString();
+    const tx = await contract.deposit(ethers.parseEther(amount), toAccount.l2Address, {
+      value: ethers.parseEther(amountWithFees),
+    });
+
+    await tx.wait();
+    this.logger.info(`✅ Successfully sent ${amount} ETH on L1 bridge`);
+    return tx.hash;
   }
 }

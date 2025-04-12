@@ -1,4 +1,5 @@
-import { Signer } from './signer/Signer';
+export type AccountType = 'braavos' | 'argent' | 'oz';
+
 /**
  * Represents a testing identity with associated signers for L1 and L2
  */
@@ -16,6 +17,10 @@ export interface Account {
    */
   l1PublicKey: string;
   /**
+   * L1 private key associated with the account
+   */
+  l1PrivateKey: string;
+  /**
    * L2 address associated with the account
    */
   l2Address: string;
@@ -28,17 +33,23 @@ export interface Account {
    */
   l2PrivateKey: string;
   /**
-   * Signer instance associated with the account
-   */
-  signer: any;
-  /**
    * Whether this account has been deployed on-chain
    */
   deployed: boolean;
   /**
    * The type of L2 account contract (Braavos or Argent)
    */
-  accountType: 'braavos' | 'argent' | 'oz';
+  accountType: AccountType;
+
+    /**
+   * Signer instance associated with the account for L1 transactions
+   */
+    getL1Signer(): any;
+
+    /**
+   * Signer instance associated with the account for L2 transactions
+   */
+    getL2Signer(): any;
 }
 
 /**
@@ -68,5 +79,5 @@ export type AccountConfig = {
   /**
    * Account contract type to use (Braavos or Argent or OZ)
    */
-  accountType: 'braavos' | 'argent' | 'oz';
+  accountType: AccountType;
 };

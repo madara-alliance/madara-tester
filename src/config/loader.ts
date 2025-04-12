@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { TestConfig } from '../types';
+import { TestConfig } from '../config/types';
 
 /**
  * Get package root directory (more robust than relative paths)

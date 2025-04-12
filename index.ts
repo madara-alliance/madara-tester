@@ -1,7 +1,8 @@
 import { afterAll, beforeAll } from '@jest/globals';
 import { loadConfig } from './src/config/loader';
 import { EnvironmentManager } from './src/environment/EnvironmentManager';
-import { TestConfig, TestContext } from './src/types';
+import { TestConfig } from './src/config/types';
+import { TestContext } from './src/types';
 import { ContextFactory } from './src/context/ContextFactory';
 import {
   enableDebugForComponents,
@@ -25,7 +26,7 @@ declare global {
 // Export core components and types
 export * from './src/accounts/signer/Signer';
 export * from './src/accounts/types';
-export type { TestContext, TestConfig, ServerConfig } from './src/types';
+export type { TestConfig, ServerConfig } from './src/config/types';
 export { L1Gateway } from './src/gateways/L1Gateway';
 export { L2Gateway } from './src/gateways/L2Gateway';
 export { StateVerifier } from './src/verifier/StateVerifier';

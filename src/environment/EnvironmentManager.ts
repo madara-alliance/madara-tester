@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { getComponentLogger } from '../utils/logger';
-import { TestConfig, ServerConfig } from '../types';
+import { TestConfig, ServerConfig } from '../config/types';
 
 /**
  * EnvironmentManager class responsible for managing the testing environment

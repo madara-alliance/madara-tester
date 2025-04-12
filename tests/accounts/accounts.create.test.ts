@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { ethers } from 'ethers';
 import { AccountsManager } from '../../src/accounts/AccountsManager';
-import { TestConfig } from '../../src/types';
+import { TestConfig } from '../../src/config/types';
 import { SignerTypeMemory } from '../../src/accounts/signer/memory/types';
 import { SignerFileImpl } from '../../src/accounts/signer/file/SignerFileImpl';
 import fs from 'fs';

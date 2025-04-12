@@ -13,8 +13,9 @@
       "coreContractAddress": "0x0000000000000000000000000000000000000001",
       "braavosClassHash": "0x2c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
       "argentClassHash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
-      "ozClassHash":"0x1484c93b9d6cf61614d698ed069b3c6992c32549194fc3465258c2194734189"
-      }
+      "ozClassHash":"0x1484c93b9d6cf61614d698ed069b3c6992c32549194fc3465258c2194734189",
+      "ethTokenProxyAddress": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+    }
   },
   "environment": {
     "fork": {
