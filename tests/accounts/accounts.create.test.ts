@@ -8,16 +8,6 @@ import fs from 'fs';
 import path from 'path';
 import { AccountType } from '../../src/accounts/types';
 
-// Mock the logger to avoid console output during tests
-jest.mock('../../src/utils/logger', () => ({
-  getComponentLogger: jest.fn(() => ({
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  })),
-}));
-
 describe('AccountsManager', () => {
   let manager: AccountsManager;
 
