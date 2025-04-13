@@ -41,15 +41,15 @@ export interface Account {
    */
   accountType: AccountType;
 
-    /**
+  /**
    * Signer instance associated with the account for L1 transactions
    */
-    getL1Signer(): any;
+  getL1Signer(): any;
 
-    /**
+  /**
    * Signer instance associated with the account for L2 transactions
    */
-    getL2Signer(): any;
+  getL2Signer(): any;
 }
 
 /**
