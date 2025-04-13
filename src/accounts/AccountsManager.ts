@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Account as StarknetAccount, CallData, ec, hash, stark } from 'starknet';
+import { Account as StarknetAccount, CallData, ec, hash, stark, CairoOption, CairoCustomEnum, CairoOptionVariant } from 'starknet';
 import { Account, AccountConfig, AccountType } from './types';
 import { Signer } from './signer/Signer';
 import { TestConfig } from '../config/types';
@@ -113,6 +113,8 @@ export class AccountsManager {
    * Creates a new random account
    */
   createRandom(name: string, accountType: AccountType): Account {
+    let newAccount = this._createEmptyAccount()
+
     // Generate random L1 wallet
     const wallet = ethers.Wallet.createRandom();
     const l1PrivateKey = wallet.privateKey;
@@ -123,39 +125,78 @@ export class AccountsManager {
     const l2PrivateKey = stark.randomAddress();
     const l2PublicKey = ec.starkCurve.getStarkKey(l2PrivateKey);
 
-    // Calculate the account address
-    const accountConstructorCallData = CallData.compile({
-      publicKey: l2PublicKey,
-    });
-    const l2Address = hash.calculateContractAddressFromHash(
+    // Populate newAccount
+    newAccount.name = name;
+    newAccount.accountType = accountType;
+    newAccount.l1Address = l1Address;
+    newAccount.l1PublicKey = l1PublicKey;
+    newAccount.l1PrivateKey = l1PrivateKey;
+    newAccount.l2PublicKey = l2PublicKey;
+    newAccount.l2PrivateKey = l2PrivateKey;
+    newAccount.getL1Signer = () => wallet;
+    newAccount.getL2Signer = () => ec.starkCurve
+
+    const constructorCallData = this.getConstructorCallData(newAccount);
+;
+    newAccount.l2Address = hash.calculateContractAddressFromHash(
       l2PublicKey,
       this.getAccountTypeClassHash(accountType),
-      accountConstructorCallData,
+      constructorCallData,
       0
     );
 
-    const l1Signer = wallet;
-    const l2Signer = ec.starkCurve
-
-    const account: Account = {
-      name,
-      l1Address,
-      l1PublicKey,
-      l1PrivateKey,
-      l2Address,
-      l2PublicKey,
-      l2PrivateKey,
-      getL1Signer: () => l1Signer,
-      getL2Signer: () => l2Signer,
-      accountType,
-      deployed: false,
-    };
-
     this.logger.debug(
-      `Created random account: ${account.name} (L1 address: ${account.l1Address}, L2 address: ${account.l2Address})`
+      `Created random account: 
+      Name: ${newAccount.name}
+      L1 Address: ${newAccount.l1Address}
+      L1 Public Key: ${newAccount.l1PublicKey}
+      L1 Private Key: ${newAccount.l1PrivateKey}
+      L2 Address: ${newAccount.l2Address}
+      L2 Public Key: ${newAccount.l2PublicKey}
+      L2 Private Key: ${newAccount.l2PrivateKey}
+      Account Type: ${newAccount.accountType}
+      Deployed: ${newAccount.deployed}`
     );
 
-    return account;
+    return newAccount;
+  }
+  getConstructorCallData(account: Account): any {
+    switch (account.accountType) {
+      case 'oz': 
+        return CallData.compile({
+          publicKey: account.l2PublicKey,
+        });
+      case 'argent':
+        const axSigner = new CairoCustomEnum({ Starknet: { pubkey: account.l2PublicKey } });
+        const axGuardian = new CairoOption<unknown>(CairoOptionVariant.None);
+        return CallData.compile({
+          owner: axSigner,
+          guardian: axGuardian,
+       });
+      case 'braavos':
+        return CallData.compile({
+          // TODO: check this
+          publicKey: account.l2PublicKey,
+        });
+      default:
+        throw new Error(`Unsupported account type: ${account.accountType}`);
+    }
+  }
+
+  private _createEmptyAccount(): Account {
+    return {
+      name: '',
+      l1Address: '',
+      l1PublicKey: '',
+      l1PrivateKey: '',
+      l2Address: '',
+      l2PublicKey: '',
+      l2PrivateKey: '',
+      getL1Signer: () => undefined,
+      getL2Signer: () => undefined,
+      accountType: undefined,
+      deployed: false,
+    };
   }
 
   /**
@@ -180,23 +221,6 @@ export class AccountsManager {
       name: account.name,
       l1Address: account.l1Address,
     }));
-  }
-
-  /**
-   * Calculates a Starknet account address based on the public key and class hash
-   */
-  private calculateAccountL2Address(publicKey: string, classHash: string): string {
-    const accountConstructorCallData = CallData.compile({
-      publicKey: publicKey,
-    });
-
-    // Salt is usually the public key in standard implementations
-    return hash.calculateContractAddressFromHash(
-      publicKey,
-      classHash,
-      accountConstructorCallData,
-      0 // We're using a new deployment, so no address is replaced
-    );
   }
 
   /**
@@ -229,6 +253,8 @@ export class AccountsManager {
   /**
    * Deploys a Starknet account contract on-chain
    */
+
+  // TODO: add deployers for each account type
   async deployAccount(account: Account, l2Gateway: L2Gateway): Promise<void> {
     // If already deployed, just return
     if (account.deployed) {
@@ -259,6 +285,7 @@ export class AccountsManager {
       const { transaction_hash } = await starknetAccount.deployAccount({
         classHash: classHash,
         constructorCalldata: [account.l2PublicKey],
+        contractAddress: account.l2Address,
         addressSalt: account.l2PublicKey,
       });
 
@@ -279,6 +306,11 @@ export class AccountsManager {
       this.logger.error(`Failed to deploy account: ${(error as Error).message}`);
       throw error;
     }
+  }
+
+  private deployOZAccount(account: Account, l2Gateway: L2Gateway): Promise<void> {
+    // TODO: implement
+    throw new Error('Method not implemented');
   }
 
   /**

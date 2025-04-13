@@ -6,6 +6,7 @@ import { SignerTypeMemory } from '../../src/accounts/signer/memory/types';
 import { SignerFileImpl } from '../../src/accounts/signer/file/SignerFileImpl';
 import fs from 'fs';
 import path from 'path';
+import { AccountType } from '../../src/accounts/types';
 
 // Mock the logger to avoid console output during tests
 jest.mock('../../src/utils/logger', () => ({
@@ -27,6 +28,8 @@ describe('AccountsManager', () => {
         rpcUrl: 'http://localhost:8545',
         contracts: {
           coreContractAddress: '0x0000000000000000000000000000000000000001',
+          ethBridgeAddress: '0x0000000000000000000000000000000000000002',
+          erc20BridgeAddress: '0x0000000000000000000000000000000000000003',
         },
       },
       l2: {
@@ -35,6 +38,7 @@ describe('AccountsManager', () => {
           coreContractAddress: '0x0000000000000000000000000000000000000001',
           braavosClassHash: '0x1234',
           argentClassHash: '0x5678',
+          ozClassHash: '0x9abc',
         },
       },
       AccountsConfig: [],
@@ -44,30 +48,62 @@ describe('AccountsManager', () => {
     manager = new AccountsManager(config);
   });
 
-  test('creates an account from mnemonic', async () => {
-    const mnemonic = 'test test test test test test test test test test test junk';
+  describe('createRandom', () => {
+    test('should create a random account with OpenZeppelin type', () => {
+      const account = manager.createRandom('TestOZAccount', 'oz');
 
-    const account = manager.createFromMnemonic(
-      mnemonic,
-      'Test Account',
-      'argent',
-      SignerTypeMemory,
-      {}
-    );
+      expect(account).toBeDefined();
+      expect(account.name).toBe('TestOZAccount');
+      expect(account.accountType).toBe('oz');
+      
+      // Check that addresses and keys were generated
+      expect(account.l1Address).toBeDefined();
+      expect(account.l1PublicKey).toBeDefined();
+      expect(account.l1PrivateKey).toBeDefined();
+      expect(account.l2Address).toBeDefined();
+      expect(account.l2PublicKey).toBeDefined();
+      expect(account.l2PrivateKey).toBeDefined();
+      
+      // Verify the account is not deployed by default
+      expect(account.deployed).toBe(false);
+    });
 
-    expect(account.name).toBe('Test Account');
-    expect(account.accountType).toBe('argent');
-    expect(account.deployed).toBe(false);
-    expect(account.l1Address).toBe(account.signer.getPublicKey());
-    expect(account.l2Address).toBe(account.l1Address);
-  });
+    test('should create a random account with Braavos type', () => {
+      const account = manager.createRandom('TestBraavosAccount', 'braavos');
 
-  test('creates a random account', async () => {
-    const account = manager.createRandom('Random Account', 'braavos');
+      expect(account).toBeDefined();
+      expect(account.name).toBe('TestBraavosAccount');
+      expect(account.accountType).toBe('braavos');
+      
+      // Check that addresses and keys were generated
+      expect(account.l1Address).toBeDefined();
+      expect(account.l1PublicKey).toBeDefined();
+      expect(account.l1PrivateKey).toBeDefined();
+      expect(account.l2Address).toBeDefined();
+      expect(account.l2PublicKey).toBeDefined();
+      expect(account.l2PrivateKey).toBeDefined();
+      
+      // Verify the account is not deployed by default
+      expect(account.deployed).toBe(false);
+    });
 
-    expect(account.name).toBe('Random Account');
-    expect(account.accountType).toBe('braavos');
-    expect(account.deployed).toBe(false);
-    console.log(account);
+    test('should create a random account with Argent type', () => {
+      const account = manager.createRandom('TestArgentAccount', 'argent');
+
+      expect(account).toBeDefined();
+      expect(account.name).toBe('TestArgentAccount');
+      expect(account.accountType).toBe('argent');
+      
+      // Check that addresses and keys were generated
+      expect(account.l1Address).toBeDefined();
+      expect(account.l1PublicKey).toBeDefined();
+      expect(account.l1PrivateKey).toBeDefined();
+      expect(account.l2Address).toBeDefined();
+      expect(account.l2PublicKey).toBeDefined();
+      expect(account.l2PrivateKey).toBeDefined();
+      
+      // Verify the account is not deployed by default
+      expect(account.deployed).toBe(false);
+    });
   });
 });

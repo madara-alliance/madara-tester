@@ -58,7 +58,9 @@ export class L1Gateway {
   ): Promise<ethers.TransactionResponse> {
     this.logger.debug(`Sending transaction to ${txRequest.to}`);
 
-    const signedTx = await fromAccount.signer.signL1Transaction(txRequest);
+    // TODO: check if this is correct
+    const l1Signer = fromAccount.getL1Signer() as ethers.Wallet;
+    const signedTx = await l1Signer.signTransaction(txRequest);
 
     try {
       const tx = await this.provider.broadcastTransaction(signedTx);

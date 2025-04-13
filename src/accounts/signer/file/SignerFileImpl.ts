@@ -57,13 +57,6 @@ export class SignerFileImpl implements Signer {
   }
 
   /**
-   * Gets the public key associated with this signer
-   */
-  async getPublicKey(): Promise<string> {
-    return '0x' + Buffer.from(this.ethWallet.address.slice(2), 'hex').toString('hex');
-  }
-
-  /**
    * Signs an Ethereum transaction using ECDSA over secp256k1
    */
   async signL1Transaction(transaction: TransactionRequest): Promise<string> {

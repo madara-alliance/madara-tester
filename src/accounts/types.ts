@@ -1,4 +1,4 @@
-export type AccountType = 'braavos' | 'argent' | 'oz';
+export type AccountType = 'braavos' | 'argent' | 'oz' | undefined;
 
 /**
  * Represents a testing identity with associated signers for L1 and L2

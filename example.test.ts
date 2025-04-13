@@ -20,7 +20,7 @@ describe('Testing Engine with Test Context', () => {
   beforeAll(async () => {
     const ctx = getTestContext();
     accountsManager = ctx.getAccountsManager();
-    accountsManager.createAccounts();
+    accountsManager.createAccountsFromConfig();
   });
 
   // Basic test to verify test context is available
