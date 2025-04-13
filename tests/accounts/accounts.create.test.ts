@@ -105,5 +105,54 @@ describe('AccountsManager', () => {
       // Verify the account is not deployed by default
       expect(account.deployed).toBe(false);
     });
+
+    test('should create account by config', () => {
+      // Create three accounts using createAccount with config
+      manager.createAccount({
+        name: 'Account1',
+        accountType: 'oz',
+        random: true,
+        mnemonic: '',  // Empty as we're using random=true
+        signerType: SignerTypeMemory,
+        signerConfig: {}
+      });
+      
+      manager.createAccount({
+        name: 'Account2',
+        accountType: 'braavos',
+        random: true,
+        mnemonic: '',  // Empty as we're using random=true
+        signerType: SignerTypeMemory,
+        signerConfig: {}
+      });
+      
+      manager.createAccount({
+        name: 'Account3',
+        accountType: 'argent',
+        random: true,
+        mnemonic: '',  // Empty as we're using random=true
+        signerType: SignerTypeMemory,
+        signerConfig: {}
+      });
+
+      // Get list of accounts
+      const accounts = manager.list();
+      expect(accounts.length).toBe(3);
+
+      // Retrieve accounts using get method
+      const account1 = manager.get('Account1');
+      const account2 = manager.get('Account2');
+      const account3 = manager.get('Account3');
+
+      // Verify account properties
+      expect(account1.name).toBe('Account1');
+      expect(account1.accountType).toBe('oz');
+      
+      expect(account2.name).toBe('Account2');
+      expect(account2.accountType).toBe('braavos');
+      
+      expect(account3.name).toBe('Account3');
+      expect(account3.accountType).toBe('argent');
+    });
   });
 });
