@@ -6,7 +6,7 @@ import { SignerTypeMemory } from '../../src/accounts/signer/memory/types';
 import { SignerFileImpl } from '../../src/accounts/signer/file/SignerFileImpl';
 import fs from 'fs';
 import path from 'path';
-import { AccountType } from '../../src/accounts/types';
+import { AccountType, AccountTypes } from '../../src/accounts/types';
 
 describe('AccountsManager', () => {
   let manager: AccountsManager;
@@ -40,11 +40,11 @@ describe('AccountsManager', () => {
 
   describe('createRandom', () => {
     test('should create a random account with OpenZeppelin type', () => {
-      const account = manager.createRandom('TestOZAccount', 'oz');
+      const account = manager.createRandom('TestOZAccount', AccountTypes.OZ);
 
       expect(account).toBeDefined();
       expect(account.name).toBe('TestOZAccount');
-      expect(account.accountType).toBe('oz');
+      expect(account.accountType).toBe(AccountTypes.OZ);
       
       // Check that addresses and keys were generated
       expect(account.l1Address).toBeDefined();
@@ -59,11 +59,11 @@ describe('AccountsManager', () => {
     });
 
     test('should create a random account with Braavos type', () => {
-      const account = manager.createRandom('TestBraavosAccount', 'braavos');
+      const account = manager.createRandom('TestBraavosAccount', AccountTypes.BRAAVOS);
 
       expect(account).toBeDefined();
       expect(account.name).toBe('TestBraavosAccount');
-      expect(account.accountType).toBe('braavos');
+      expect(account.accountType).toBe(AccountTypes.BRAAVOS);
       
       // Check that addresses and keys were generated
       expect(account.l1Address).toBeDefined();
@@ -78,11 +78,11 @@ describe('AccountsManager', () => {
     });
 
     test('should create a random account with Argent type', () => {
-      const account = manager.createRandom('TestArgentAccount', 'argent');
+      const account = manager.createRandom('TestArgentAccount', AccountTypes.ARGENT);
 
       expect(account).toBeDefined();
       expect(account.name).toBe('TestArgentAccount');
-      expect(account.accountType).toBe('argent');
+      expect(account.accountType).toBe(AccountTypes.ARGENT);
       
       // Check that addresses and keys were generated
       expect(account.l1Address).toBeDefined();
@@ -100,7 +100,7 @@ describe('AccountsManager', () => {
       // Create three accounts using createAccount with config
       manager.createAccount({
         name: 'Account1',
-        accountType: 'oz',
+        accountType: AccountTypes.OZ,
         random: true,
         mnemonic: '',  // Empty as we're using random=true
         signerType: SignerTypeMemory,
@@ -109,7 +109,7 @@ describe('AccountsManager', () => {
       
       manager.createAccount({
         name: 'Account2',
-        accountType: 'braavos',
+        accountType: AccountTypes.BRAAVOS,
         random: true,
         mnemonic: '',  // Empty as we're using random=true
         signerType: SignerTypeMemory,
@@ -118,7 +118,7 @@ describe('AccountsManager', () => {
       
       manager.createAccount({
         name: 'Account3',
-        accountType: 'argent',
+        accountType: AccountTypes.ARGENT,
         random: true,
         mnemonic: '',  // Empty as we're using random=true
         signerType: SignerTypeMemory,
@@ -136,13 +136,13 @@ describe('AccountsManager', () => {
 
       // Verify account properties
       expect(account1.name).toBe('Account1');
-      expect(account1.accountType).toBe('oz');
+      expect(account1.accountType).toBe(AccountTypes.OZ);
       
       expect(account2.name).toBe('Account2');
-      expect(account2.accountType).toBe('braavos');
+      expect(account2.accountType).toBe(AccountTypes.BRAAVOS);
       
       expect(account3.name).toBe('Account3');
-      expect(account3.accountType).toBe('argent');
+      expect(account3.accountType).toBe(AccountTypes.ARGENT);
     });
   });
 });

@@ -9,7 +9,7 @@ import {
   CairoCustomEnum,
   CairoOptionVariant,
 } from 'starknet';
-import { Account, AccountConfig, AccountType } from './types';
+import { Account, AccountConfig, AccountType, AccountTypes } from './types';
 import { Signer } from './signer/Signer';
 import { TestConfig } from '../config/types';
 import { getComponentLogger } from '../utils/logger';
@@ -170,18 +170,18 @@ export class AccountsManager {
   }
   getConstructorCallData(account: Account): any {
     switch (account.accountType) {
-      case 'oz':
+      case AccountTypes.OZ:
         return CallData.compile({
           publicKey: account.l2PublicKey,
         });
-      case 'argent':
+      case AccountTypes.ARGENT:
         const axSigner = new CairoCustomEnum({ Starknet: { pubkey: account.l2PublicKey } });
         const axGuardian = new CairoOption<unknown>(CairoOptionVariant.None);
         return CallData.compile({
           owner: axSigner,
           guardian: axGuardian,
         });
-      case 'braavos':
+      case AccountTypes.BRAAVOS:
         return CallData.compile({
           // TODO: check this
           publicKey: account.l2PublicKey,
@@ -238,13 +238,13 @@ export class AccountsManager {
     let classHash: string | undefined;
 
     switch (accountType) {
-      case 'braavos':
+      case AccountTypes.BRAAVOS:
         classHash = this.globalConfig.l2.contracts?.braavosClassHash;
         break;
-      case 'argent':
+      case AccountTypes.ARGENT:
         classHash = this.globalConfig.l2.contracts?.argentClassHash;
         break;
-      case 'oz':
+      case AccountTypes.OZ:
         classHash = this.globalConfig.l2.contracts?.ozClassHash;
         break;
       default:

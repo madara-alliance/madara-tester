@@ -1,4 +1,11 @@
-export type AccountType = 'braavos' | 'argent' | 'oz' | undefined;
+// Account type constants
+export const AccountTypes = {
+  BRAAVOS: 'braavos' as const,
+  ARGENT: 'argent' as const,
+  OZ: 'oz' as const
+};
+
+export type AccountType = typeof AccountTypes[keyof typeof AccountTypes] | undefined;
 
 /**
  * Represents a testing identity with associated signers for L1 and L2
