@@ -7,7 +7,7 @@ import {
   mockReadFileSyncError,
   mockReadFileSyncSequence,
   mockDefaultConfigPath,
-} from '../utils/fs-path-mocks';
+} from './utils/fs-path-mocks'; 
 
 // Define a valid test config object for all tests to use
 const validTestConfig = {
@@ -22,7 +22,7 @@ jest.mock('path');
 const DEFAULT_CONFIG_PATH = mockDefaultConfigPath();
 
 // Now import the loader which will use the mocked path.join
-import { loadConfig } from '../../src/config/loader';
+import { loadConfig } from '../src/config/loader';
 
 describe('Config Loader', () => {
   // Setup and teardown

@@ -1,12 +1,12 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import { ethers } from 'ethers';
-import { AccountsManager } from '../../src/accounts/AccountsManager';
-import { TestConfig } from '../../src/config/types';
-import { SignerTypeMemory } from '../../src/accounts/signer/memory/types';
-import { SignerFileImpl } from '../../src/accounts/signer/file/SignerFileImpl';
+import { AccountsManager } from '../src/accounts/AccountsManager';
+import { TestConfig } from '../src/config/types';
+import { SignerTypeMemory } from '../src/accounts/signer/memory/types';
+import { SignerFileImpl } from '../src/accounts/signer/file/SignerFileImpl';
 import fs from 'fs';
 import path from 'path';
-import { AccountType, AccountTypes } from '../../src/accounts/types';
+import { AccountType, AccountTypes } from '../src/accounts/types';
 
 describe('AccountsManager', () => {
   let manager: AccountsManager;

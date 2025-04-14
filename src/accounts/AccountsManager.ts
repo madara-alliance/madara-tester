@@ -15,6 +15,11 @@ import { getComponentLogger } from '../utils/logger';
 import { L2Gateway } from '../gateways/L2Gateway';
 
 /**
+ * Default Cairo version for Starknet accounts
+ */
+const DEFAULT_CAIRO_VERSION = '1';
+
+/**
  * Manages test accounts for both L1 and L2
  */
 export class AccountsManager {
@@ -279,7 +284,7 @@ export class AccountsManager {
       l2Gateway.provider,
       account.l2Address,
       account.l2PrivateKey,
-      '1' // Use Cairo 1 version
+      DEFAULT_CAIRO_VERSION
     );
 
     this.logger.info(

@@ -25,8 +25,18 @@
   "AccountsConfig": [
     {
       "random":  "true",
-      "name": "Default1",
+      "name": "Account_OZ",
       "accountType": "oz"
+    },
+    {
+      "random":  "true",
+      "name": "Account_Argent",
+      "accountType": "argent"
+    },
+    {
+      "random":  "true",
+      "name": "Account_Braavos",
+      "accountType": "braavos"
     }
   ],
   "logging": {

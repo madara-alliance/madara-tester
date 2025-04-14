@@ -16,10 +16,33 @@ export const LoggerConfig = {
   DEBUG_COMPONENTS: process.env.DEBUG_COMPONENTS?.split(',') || [],
 };
 
+function getLogLevelEmoji(level: string): string {
+  switch (level) {
+    case 'error':
+      return '❌ '; // Red cross for errors
+    case 'warn':
+      return '⚠️ '; // Warning symbol for warnings
+    case 'info':
+      return '✅ '; // Green check for info/success
+    case 'debug':
+      return '🔍 '; // Magnifying glass for debug
+    case 'trace':
+      return '🔎 '; // Detailed tracing
+    default:
+      return '📝 '; // Note for unknown levels
+  }
+}
+
 const prettyStream = pretty({
   colorize: true,
   ignore: 'pid,hostname',
-  messageFormat: '[{name}] {msg}',
+  // Define message format directly as a string template
+  messageFormat: '{levelLabel} [{name}] {msg}',
+  customPrettifiers: {
+    level: (level) => {
+      return getLogLevelEmoji(String(level));
+    }
+  },
   sync: true, // Force synchronous writing
 });
 
