@@ -114,7 +114,8 @@ export class L2InteractionWatcher {
         this.logger.debug(`Polling ${l2Address}. Current balance: ${currentBalance.toString()}`);
 
         const conditionMet = expectedIncrease
-          ? BigInt(currentBalance.toString()) >= BigInt(initialBalance.toString()) + BigInt(expectedIncrease.toString())
+          ? BigInt(currentBalance.toString()) >=
+            BigInt(initialBalance.toString()) + BigInt(expectedIncrease.toString())
           : BigInt(currentBalance.toString()) > BigInt(initialBalance.toString());
 
         if (conditionMet) {

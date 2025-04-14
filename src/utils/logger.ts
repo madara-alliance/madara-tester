@@ -41,7 +41,7 @@ const prettyStream = pretty({
   customPrettifiers: {
     level: (level) => {
       return getLogLevelEmoji(String(level));
-    }
+    },
   },
   sync: true, // Force synchronous writing
 });

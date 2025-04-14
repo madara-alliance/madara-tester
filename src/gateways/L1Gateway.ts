@@ -140,7 +140,7 @@ export class L1Gateway {
    */
   async bridgeToL2(fromAccount: Account, toAccount: Account, amount: string): Promise<string> {
     const bridgeAddress = this.globalConfig.l1.contracts.ethBridgeAddress;
-    
+
     this.logger.info(
       `Bridging ${amount} ETH to ${toAccount.l2Address} from ${fromAccount.l1Address} 
        through ${bridgeAddress}`
@@ -148,11 +148,11 @@ export class L1Gateway {
 
     // Get the signer
     const signer = fromAccount.getL1Signer() as ethers.Wallet;
-    
+
     if (!signer) {
       throw new Error(`No L1 signer available for account ${fromAccount.name}`);
     }
-    
+
     // Use the signer as is if it already has a provider, otherwise connect it
     const connectedSigner = signer.provider ? signer : signer.connect(this.provider);
 
@@ -167,10 +167,8 @@ export class L1Gateway {
     // ethers.toBigInt should handle the hex string directly.
     const l2RecipientAddressAsUint256 = ethers.toBigInt(toAccount.l2Address);
 
-    const tx = await contract.deposit(
-      ethers.parseEther(amount),
-      l2RecipientAddressAsUint256,
-       { value: ethers.parseEther(amountWithFees),
+    const tx = await contract.deposit(ethers.parseEther(amount), l2RecipientAddressAsUint256, {
+      value: ethers.parseEther(amountWithFees),
     });
 
     await tx.wait();
