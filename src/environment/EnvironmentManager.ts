@@ -1,4 +1,3 @@
-import { spawn } from 'child_process';
 import { getComponentLogger } from '../utils/logger';
 import { TestConfig, ServerConfig } from '../config/types';
 

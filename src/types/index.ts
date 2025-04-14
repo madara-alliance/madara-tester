@@ -1,4 +1,3 @@
-import { AccountConfig } from '../accounts/types';
 import { AccountsManager } from '../accounts/AccountsManager';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';

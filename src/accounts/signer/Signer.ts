@@ -1,4 +1,3 @@
-import { BytesLike, TransactionRequest } from 'ethers';
 
 /**
  * Interface for transaction and message signing

@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { Signer } from '../accounts/signer/Signer';
 import { getComponentLogger } from '../utils/logger';
 import { TestConfig } from '../config/types';
 import { Account } from '../accounts/types';

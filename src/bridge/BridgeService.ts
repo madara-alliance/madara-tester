@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-import { Account } from '../accounts/types';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
 import { getComponentLogger } from '../utils/logger';

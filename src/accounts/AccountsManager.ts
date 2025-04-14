@@ -10,12 +10,9 @@ import {
   CairoOptionVariant,
 } from 'starknet';
 import { Account, AccountConfig, AccountType, AccountTypes } from './types';
-import { Signer } from './signer/Signer';
 import { TestConfig } from '../config/types';
 import { getComponentLogger } from '../utils/logger';
 import { L2Gateway } from '../gateways/L2Gateway';
-import { createSigner } from './signer/factory';
-import { SignerTypeMemory } from './signer/memory/types';
 
 /**
  * Manages test accounts for both L1 and L2
