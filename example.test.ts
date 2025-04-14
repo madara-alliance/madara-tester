@@ -1,5 +1,7 @@
 import { describe, test, expect, afterAll, beforeAll } from '@jest/globals';
 import { AccountsManager, getTestContext, initEnvironment, setGlobalDebugMode } from './index';
+import { L2InteractionWatcher } from './src/watcher/L2InteractionWatcher';
+import { ethers } from 'ethers';
 
 process.setMaxListeners(20); // TODO: remove this
 setGlobalDebugMode(true); // TODO: find a better place for this setting
@@ -43,7 +45,13 @@ describe('Testing Engine with Test Context', () => {
     const ozAccount = accountsManager.get('Account_OZ');
     let ok_funding = await accountsManager.fundAccount(ozAccount, getTestContext().getL1Gateway());
     expect(ok_funding).toBe(true);
+
+    // wait for balance to update
+    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
+    const expectedAmountBridged = ethers.parseEther('0.01'); // Or use the variable passed to bridgeToL2
+    await watcher.waitForBalanceUpdate(ozAccount.l2Address, { expectedIncrease: expectedAmountBridged });
+
     let ok_deploy = await accountsManager.deployAccount(ozAccount, getTestContext().getL2Gateway());
     expect(ok_deploy).toBe(true);
-  });
+  }, 1200000);
 });

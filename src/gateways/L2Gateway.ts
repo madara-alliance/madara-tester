@@ -65,8 +65,10 @@ export class L2Gateway {
 
     try {
       const balance = await tokenContract.balanceOf(address);
-      this.logger.debug(`Got balance for ${address} for token ${tokenType} at ${tokenAddress}: ${balance.balance}`);
-      return balance.balance;
+      this.logger.debug(
+        `Got balance for ${address} for token ${tokenType} at ${tokenAddress}: ${balance.balance}`
+      );
+      return BigInt(balance.balance.toString());
     } catch (error) {
       this.logger.error(
         `Failed to get balance for ${address} for token ${tokenType} at ${tokenAddress}: ${(error as Error).message}`

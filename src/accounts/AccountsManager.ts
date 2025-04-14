@@ -345,11 +345,11 @@ export class AccountsManager {
    */
 
   // TODO: add deployers for each account type
-  async deployAccount(account: Account, l2Gateway: L2Gateway): Promise<void> {
+  async deployAccount(account: Account, l2Gateway: L2Gateway): Promise<boolean> {
     // If already deployed, just return
     if (account.deployed) {
       this.logger.info(`Account ${account.name} already deployed`);
-      return;
+      return true;
     }
 
     // Check if account type and corresponding class hash are configured
@@ -359,10 +359,11 @@ export class AccountsManager {
 
     // Check if the account has enough funds to deploy
     const balance = await l2Gateway.getBalance(account.l2Address, 'ETH');
-    // Compare as bigint since balance from L2Gateway is returned as bigint
-    if (balance < BigInt(10000000000000000)) {
+    if (balance.valueOf() < BigInt(10000000000000000)) {
       // 0.01 ETH in wei
-      throw new Error(`Account ${account.name} has insufficient funds on L2. current balance: ${balance.toLocaleString()}`);
+      throw new Error(
+        `Account ${account.name} has insufficient funds on L2. current balance: ${balance.toLocaleString()}`
+      );
     }
 
     // Get the class hash based on account type
@@ -400,6 +401,7 @@ export class AccountsManager {
       this.logger.info(
         `✅ Account ${account.name} deployed successfully at ${account.l2Address} - tx: ${transaction_hash}`
       );
+      return true;
     } catch (error) {
       this.logger.error(`Failed to deploy account: ${(error as Error).message}`);
       throw error;

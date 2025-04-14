@@ -163,9 +163,13 @@ export class L1Gateway {
     );
 
     const amountWithFees = (parseFloat(amount) + 0.01).toString();
+    // Convert L2 address hex string (felt) to a value suitable for uint256 parameter
+    // ethers.toBigInt should handle the hex string directly.
+    const l2RecipientAddressAsUint256 = ethers.toBigInt(toAccount.l2Address);
+
     const tx = await contract.deposit(
       ethers.parseEther(amount),
-      toAccount.l2PublicKey,
+      l2RecipientAddressAsUint256,
        { value: ethers.parseEther(amountWithFees),
     });
 
