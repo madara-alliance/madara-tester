@@ -139,19 +139,34 @@ export class L1Gateway {
    * @returns The transaction hash of the bridge operation
    */
   async bridgeToL2(fromAccount: Account, toAccount: Account, amount: string): Promise<string> {
+    const bridgeAddress = this.globalConfig.l1.contracts.ethBridgeAddress;
+    
     this.logger.info(
-      `Bridging ${amount} ETH to ${toAccount.l2Address} from ${fromAccount.l1Address}`
+      `Bridging ${amount} ETH to ${toAccount.l2Address} from ${fromAccount.l1Address} 
+       through ${bridgeAddress}`
     );
 
+    // Get the signer
+    const signer = fromAccount.getL1Signer() as ethers.Wallet;
+    
+    if (!signer) {
+      throw new Error(`No L1 signer available for account ${fromAccount.name}`);
+    }
+    
+    // Use the signer as is if it already has a provider, otherwise connect it
+    const connectedSigner = signer.provider ? signer : signer.connect(this.provider);
+
     const contract = new ethers.Contract(
-      this.globalConfig.l1.contracts.ethBridgeAddress,
+      bridgeAddress,
       ['function deposit(uint256, uint256)'],
-      fromAccount.getL1Signer()
+      connectedSigner
     );
 
     const amountWithFees = (parseFloat(amount) + 0.01).toString();
-    const tx = await contract.deposit(ethers.parseEther(amount), toAccount.l2Address, {
-      value: ethers.parseEther(amountWithFees),
+    const tx = await contract.deposit(
+      ethers.parseEther(amount),
+      toAccount.l2PublicKey,
+       { value: ethers.parseEther(amountWithFees),
     });
 
     await tx.wait();

@@ -50,9 +50,8 @@ export class L2Gateway {
     return { address, abi } as unknown as T;
   }
 
-  async getBalance(address: string, tokenType: string) {
+  async getBalance(address: string, tokenType: string): Promise<BigInt> {
     const tokenAddress = this.getTokenAddress(tokenType);
-    this.logger.debug(`Getting balance for ${address} for token ${tokenType} at ${tokenAddress}`);
     const abi = [
       {
         name: 'balanceOf',
@@ -66,6 +65,7 @@ export class L2Gateway {
 
     try {
       const balance = await tokenContract.balanceOf(address);
+      this.logger.debug(`Got balance for ${address} for token ${tokenType} at ${tokenAddress}: ${balance.balance}`);
       return balance.balance;
     } catch (error) {
       this.logger.error(

@@ -4,7 +4,9 @@
     "rpcUrl": "http://localhost:8545",
     "chainId": 31337,
     "contracts": {
-      "coreContractAddress": "0x0000000000000000000000000000000000000001"
+      "coreContractAddress": "0x0000000000000000000000000000000000000001",
+      "ethBridgeAddress": "0x8a791620dd6260079bf849dc5567adc3f2fdc318",
+      "erc20BridgeAddress": "0x4200000000000000000000000000000000000010"
     }
   },
   "l2": {
@@ -24,12 +26,18 @@
   },
   "AccountsConfig": [
     {
-      "random":  "true",
+      "random":  false,
+      "name": "Funding_Account",
+      "accountType": "funding",
+      "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    },
+    {
+      "random":  true,
       "name": "Account_OZ",
       "accountType": "oz"
     },
     {
-      "random":  "true",
+      "random":  true,
       "name": "Account_Argent",
       "accountType": "argent"
     },

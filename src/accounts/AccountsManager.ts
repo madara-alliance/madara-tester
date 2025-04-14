@@ -13,6 +13,7 @@ import { Account, AccountConfig, AccountType, AccountTypes } from './types';
 import { TestConfig } from '../config/types';
 import { getComponentLogger } from '../utils/logger';
 import { L2Gateway } from '../gateways/L2Gateway';
+import { L1Gateway } from '../gateways/L1Gateway';
 
 /**
  * Default Cairo version for Starknet accounts
@@ -75,6 +76,14 @@ export class AccountsManager {
       );
     }
 
+    if (accountConfig.privateKey) {
+      account = this.createFromPrivateKey(
+        accountConfig.privateKey,
+        accountConfig.name,
+        accountConfig.accountType
+      );
+    }
+
     if (!account) {
       this.logger.warn(
         `Cannot create account "${accountConfig.name}" - no mnemonic or random flag set`
@@ -91,7 +100,7 @@ export class AccountsManager {
    * @param l2Gateway
    */
   async deployAccounts(l2Gateway: L2Gateway): Promise<boolean> {
-    this.logger.info(`Deploying ${this.accounts.length} Starknet accounts...`);
+    this.logger.info(`Deploying accounts on L2 ...`);
 
     for (let account of this.accounts) {
       try {
@@ -118,6 +127,39 @@ export class AccountsManager {
   ): Account {
     // This method is still under development
     throw new Error('Method not implemented');
+  }
+
+  /**
+   * Creates an account from a private key
+   */
+  createFromPrivateKey(privateKey: string, name: string, accountType: AccountType): Account {
+    // TODO: only accept funding account
+    if (accountType !== AccountTypes.FUNDING) {
+      throw new Error('Only funding account can be created from private key');
+    }
+
+    return this.createFundingAccount(privateKey, name);
+  }
+
+  /**
+   * Creates a funding account from a private key
+   */
+  createFundingAccount(privateKey: string, name: string): Account {
+    const wallet = new ethers.Wallet(privateKey);
+
+    return {
+      name,
+      accountType: AccountTypes.FUNDING,
+      l1Address: wallet.address,
+      l1PublicKey: wallet.signingKey.publicKey,
+      l1PrivateKey: wallet.privateKey,
+      l2Address: '',
+      l2PublicKey: '',
+      l2PrivateKey: '',
+      deployed: true,
+      getL1Signer: () => wallet,
+      getL2Signer: () => undefined,
+    };
   }
 
   /**
@@ -260,6 +302,44 @@ export class AccountsManager {
     return classHash;
   }
 
+  async fundAccount(account: Account, l1Gateway: L1Gateway): Promise<boolean> {
+    this.logger.info(`Funding account ${account.name} on L2`);
+
+    // Find a funding account from the existing accounts
+    const fundingAccount = this.accounts.find((acc) => acc.accountType === AccountTypes.FUNDING);
+
+    if (!fundingAccount) {
+      throw new Error('No funding account found in account manager');
+    }
+
+    // Create a signer with provider
+    const fundingSigner = fundingAccount.getL1Signer() as ethers.Wallet;
+    fundingSigner.connect(l1Gateway.provider);
+
+    // Check if the fund account has enough ETH
+    const fundAccountBalance = await l1Gateway.getBalance(fundingSigner.address);
+
+    if (fundAccountBalance < ethers.parseEther('0.05')) {
+      throw new Error(`Funding account ${fundingAccount.name} has insufficient balance`);
+    }
+
+    // Send ETH to the L2 account through the bridge
+    try {
+      const txHash = await l1Gateway.bridgeToL2(
+        fundingAccount,
+        account,
+        '0.01' // Amount in ETH
+      );
+
+      this.logger.info(`✅ Successfully initiated funding for ${account.name} - tx: ${txHash}`);
+    } catch (error) {
+      this.logger.error(`Failed to fund account ${account.name}: ${(error as Error).message}`);
+      throw error;
+    }
+
+    return true;
+  }
+
   /**
    * Deploys a Starknet account contract on-chain
    */
@@ -268,13 +348,21 @@ export class AccountsManager {
   async deployAccount(account: Account, l2Gateway: L2Gateway): Promise<void> {
     // If already deployed, just return
     if (account.deployed) {
-      this.logger.info(`Account ${account.name} already deployed at ${account.l2Address}`);
+      this.logger.info(`Account ${account.name} already deployed`);
       return;
     }
 
     // Check if account type and corresponding class hash are configured
     if (!account.accountType) {
       throw new Error(`Account ${account.name} has no accountType specified`);
+    }
+
+    // Check if the account has enough funds to deploy
+    const balance = await l2Gateway.getBalance(account.l2Address, 'ETH');
+    // Compare as bigint since balance from L2Gateway is returned as bigint
+    if (balance < BigInt(10000000000000000)) {
+      // 0.01 ETH in wei
+      throw new Error(`Account ${account.name} has insufficient funds on L2. current balance: ${balance.toLocaleString()}`);
     }
 
     // Get the class hash based on account type

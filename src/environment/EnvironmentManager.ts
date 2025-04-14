@@ -11,7 +11,7 @@ export class EnvironmentManager {
 
   constructor(config: TestConfig) {
     this.config = config;
-    this.logger.debug('EnvironmentManager initialized');
+    this.logger.debug('EnvironmentManager initialized with config: ', this.config);
   }
 
   async initFromServer(apiServerUrl: string) {

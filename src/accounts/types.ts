@@ -2,7 +2,8 @@
 export const AccountTypes = {
   BRAAVOS: 'braavos' as const,
   ARGENT: 'argent' as const,
-  OZ: 'oz' as const
+  OZ: 'oz' as const,
+  FUNDING: 'funding' as const
 };
 
 export type AccountType = typeof AccountTypes[keyof typeof AccountTypes] | undefined;
@@ -64,17 +65,21 @@ export interface Account {
  */
 export type AccountConfig = {
   /**
+   * Name for the account
+   */
+  name: string;
+  /**
    * Whether to generate random accounts instead of using the mnemonic
    */
   random: boolean;
   /**
    * Mnemonic phrase used to derive account private keys
    */
-  mnemonic: string;
+  mnemonic?: string;
   /**
-   * Name for the account
+   * Private key for the account
    */
-  name: string;
+  privateKey?: string;
   /**
    * Type of signer to use for this account
    */

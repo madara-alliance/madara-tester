@@ -40,7 +40,10 @@ describe('Testing Engine with Test Context', () => {
     // We're now using the shared accountsManager that was initialized in beforeAll
     expect(accountsManager).toBeDefined();
     expect(accountsManager.list().length).toBeGreaterThan(0);
-    let ok = await accountsManager.deployAccounts(getTestContext().getL2Gateway());
-    expect(ok).toBe(true);
+    const ozAccount = accountsManager.get('Account_OZ');
+    let ok_funding = await accountsManager.fundAccount(ozAccount, getTestContext().getL1Gateway());
+    expect(ok_funding).toBe(true);
+    let ok_deploy = await accountsManager.deployAccount(ozAccount, getTestContext().getL2Gateway());
+    expect(ok_deploy).toBe(true);
   });
 });
