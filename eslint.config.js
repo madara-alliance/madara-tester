@@ -1,8 +1,8 @@
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import unusedImports from 'eslint-plugin-unused-imports';
+const tseslint = require('@typescript-eslint/eslint-plugin');
+const tsParser = require('@typescript-eslint/parser');
+const unusedImports = require('eslint-plugin-unused-imports');
 
-export default [
+module.exports = [
   {
     files: ['**/*.js', '**/*.ts', '**/*.tsx', '**/*.jsx'],
     ignores: ['node_modules/**', 'dist/**'],

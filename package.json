@@ -4,7 +4,6 @@
   "description": "Testing framework for Madara L2 applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
   "scripts": {
     "test": "jest",
     "test:jest": "jest tests/jest-example.test.ts",
