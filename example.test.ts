@@ -25,29 +25,81 @@ describe('Testing Engine with Test Context', () => {
     accountsManager.createAccountsFromConfig();
   });
 
-  test('should deploy accounts and fund them', async () => {
+  test('should deploy and fund OZ account', async () => {
     expect(accountsManager).toBeDefined();
     const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
     expect(watcher).toBeDefined();
 
-    // Check that all accounts were created. Accounts are defined in the config file.
     const ozAccount = accountsManager.get('Account_OZ');
     expect(ozAccount).toBeDefined();
+
+    // Start waiting for the balance update BEFORE sending funds
+    const waitForBalance = watcher.waitForBalanceUpdate(ozAccount.l2Address, {
+      tokenType: 'ETH',
+    });
+    let ok_funding_oz = await accountsManager.fundAccount(
+      ozAccount,
+      getTestContext().getL1Gateway()
+    );
+    expect(ok_funding_oz).toBe(true);
+    const balance_oz = await waitForBalance;
+    expect(balance_oz).toBeGreaterThan(0);
+    let ok_deploy_oz = await accountsManager.deployAccount(
+      ozAccount,
+      getTestContext().getL2Gateway()
+    );
+    expect(ok_deploy_oz).toBe(true);
+  }, 1200000);
+
+  test('should deploy and fund Argent account', async () => {
+    expect(accountsManager).toBeDefined();
+    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
+    expect(watcher).toBeDefined();
+
     const argentAccount = accountsManager.get('Account_Argent');
     expect(argentAccount).toBeDefined();
+
+    // Start waiting for the balance update BEFORE sending funds
+    const waitForBalance = watcher.waitForBalanceUpdate(argentAccount.l2Address, {
+      tokenType: 'ETH',
+    });
+    let ok_funding_argent = await accountsManager.fundAccount(
+      argentAccount,
+      getTestContext().getL1Gateway()
+    );
+    expect(ok_funding_argent).toBe(true);
+    const balance_argent = await waitForBalance;
+    expect(balance_argent).toBeGreaterThan(0);
+    let ok_deploy_argent = await accountsManager.deployAccount(
+      argentAccount,
+      getTestContext().getL2Gateway()
+    );
+    expect(ok_deploy_argent).toBe(true);
+  }, 1200000);
+
+  test('should deploy and fund Braavos account', async () => {
+    expect(accountsManager).toBeDefined();
+    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
+    expect(watcher).toBeDefined();
+
     const braavosAccount = accountsManager.get('Account_Braavos');
     expect(braavosAccount).toBeDefined();
 
-    // Fund the account with ETH from the funding account
-    let ok_funding = await accountsManager.fundAccount(ozAccount, getTestContext().getL1Gateway());
-    expect(ok_funding).toBe(true);
-
-    // Funding tx succeeded, now wait for balance to update
-    const balance = await watcher.waitForBalanceUpdate(ozAccount.l2Address, { tokenType: 'ETH' });
-    expect(balance).toBeGreaterThan(0);
-
-    // Account funded, now deploy it
-    let ok_deploy = await accountsManager.deployAccount(ozAccount, getTestContext().getL2Gateway());
-    expect(ok_deploy).toBe(true);
+    // Start waiting for the balance update BEFORE sending funds
+    const waitForBalance = watcher.waitForBalanceUpdate(braavosAccount.l2Address, {
+      tokenType: 'ETH',
+    });
+    let ok_funding_braavos = await accountsManager.fundAccount(
+      braavosAccount,
+      getTestContext().getL1Gateway()
+    );
+    expect(ok_funding_braavos).toBe(true);
+    const balance_braavos = await waitForBalance;
+    expect(balance_braavos).toBeGreaterThan(0);
+    let ok_deploy_braavos = await accountsManager.deployAccount(
+      braavosAccount,
+      getTestContext().getL2Gateway()
+    );
+    expect(ok_deploy_braavos).toBe(true);
   }, 1200000);
 });
