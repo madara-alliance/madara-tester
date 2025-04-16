@@ -138,6 +138,7 @@ export class L1Gateway {
    * @param amount - The amount of ETH to bridge
    * @returns The transaction hash of the bridge operation
    */
+  // TODO: move to Bridge.ts
   async bridgeToL2(fromAccount: Account, toAccount: Account, amount: string): Promise<string> {
     const bridgeAddress = this.globalConfig.l1.contracts.ethBridgeAddress;
 

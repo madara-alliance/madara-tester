@@ -9,7 +9,7 @@ setGlobalDebugMode(true); // TODO: find a better place for this setting
 // Register the Jest hooks which will automatically set up the test environment
 // This function accepts a path as an optional argument that points to a config file,
 // if not provided, the default config will be used
-initEnvironment();
+initEnvironment('./engine.config-testing.json');
 
 // Initialize shared resources once for all tests
 let accountsManager: AccountsManager;
@@ -25,32 +25,28 @@ describe('Testing Engine with Test Context', () => {
     accountsManager.createAccountsFromConfig();
   });
 
-  // Basic test to verify test context is available
-  test('should have valid test context', () => {
-    // Get the test context that was set up by registerJestHooks()
-    const ctx = getTestContext();
-
-    // Verify the test context was created correctly
-    expect(ctx).toBeDefined();
-
-    // Access the environment manager through the context
-    const environmentManager = ctx.getEnvironmentManager();
-    expect(environmentManager).toBeDefined();
-  });
-
-  test('should have valid accounts', async () => {
-    // We're now using the shared accountsManager that was initialized in beforeAll
+  test('should deploy accounts and fund them', async () => {
     expect(accountsManager).toBeDefined();
-    expect(accountsManager.list().length).toBeGreaterThan(0);
+    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
+    expect(watcher).toBeDefined();
+
+    // Check that all accounts were created. Accounts are defined in the config file.
     const ozAccount = accountsManager.get('Account_OZ');
+    expect(ozAccount).toBeDefined();
+    const argentAccount = accountsManager.get('Account_Argent');
+    expect(argentAccount).toBeDefined();
+    const braavosAccount = accountsManager.get('Account_Braavos');
+    expect(braavosAccount).toBeDefined();
+
+    // Fund the account with ETH from the funding account
     let ok_funding = await accountsManager.fundAccount(ozAccount, getTestContext().getL1Gateway());
     expect(ok_funding).toBe(true);
 
-    // wait for balance to update
-    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
-    const expectedAmountBridged = ethers.parseEther('0.01'); // Or use the variable passed to bridgeToL2
-    await watcher.waitForBalanceUpdate(ozAccount.l2Address, { expectedIncrease: expectedAmountBridged });
+    // Funding tx succeeded, now wait for balance to update
+    const balance = await watcher.waitForBalanceUpdate(ozAccount.l2Address, { tokenType: 'ETH' });
+    expect(balance).toBeGreaterThan(0);
 
+    // Account funded, now deploy it
     let ok_deploy = await accountsManager.deployAccount(ozAccount, getTestContext().getL2Gateway());
     expect(ok_deploy).toBe(true);
   }, 1200000);

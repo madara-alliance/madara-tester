@@ -78,7 +78,7 @@ export class L2InteractionWatcher {
   }
 
   /**
-   * Waits until the L2 balance for an account increases, typically after an L1->L2 message (like a deposit).
+   * Waits until the L2 balance for an account increases.
    * @param account The L2 account (or just its address) being monitored.
    * @param options Optional configuration for polling interval, timeout, token, and expected increase.
    * @returns The final balance after an increase is detected.
@@ -109,7 +109,6 @@ export class L2InteractionWatcher {
 
     while (Date.now() - startTime < timeout) {
       try {
-        // Use the L2Gateway helper which handles ERC20 calls
         currentBalance = await this.l2Gateway.getBalance(l2Address, tokenType);
         this.logger.debug(`Polling ${l2Address}. Current balance: ${currentBalance.toString()}`);
 
