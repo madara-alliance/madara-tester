@@ -37,12 +37,8 @@ const prettyStream = pretty({
   colorize: true,
   ignore: 'pid,hostname',
   // Define message format directly as a string template
-  messageFormat: '{levelLabel} [{name}] {msg}',
-  customPrettifiers: {
-    level: (level) => {
-      return getLogLevelEmoji(String(level));
-    },
-  },
+  messageFormat: '{msg}',
+  customColors: 'error:red,warn:yellow,info:green,debug:blue,trace:magenta',
   sync: true, // Force synchronous writing
 });
 
