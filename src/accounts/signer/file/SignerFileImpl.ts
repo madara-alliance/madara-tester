@@ -4,6 +4,7 @@ import { Signer } from '../Signer';
 import { getComponentLogger } from '../../../utils/logger';
 import { SignerFileConfig } from './types';
 import fs from 'fs';
+import path from 'path';
 
 /**
  * File-based signer implementation that uses a private key loaded from a file
@@ -102,5 +103,14 @@ export class SignerFileImpl implements Signer {
 
   getPrivateKey(): string {
     return this.readAndValidatePrivateKey(this.config.privateKeyPath);
+  }
+
+  /**
+   * Gets the public key for this signer
+   */
+  getPublicKey(): string {
+    // If needed, derive the public key from the private key
+    // For now, return an empty string as a placeholder
+    return '';
   }
 }

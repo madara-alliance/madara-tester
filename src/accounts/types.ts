@@ -1,12 +1,12 @@
 // Account type constants
-export const AccountTypes = {
-  BRAAVOS: 'braavos' as const,
-  ARGENT: 'argent' as const,
-  OZ: 'oz' as const,
-  FUNDING: 'funding' as const,
-};
+export enum AccountTypes {
+  OZ = 'OZ',
+  ARGENT = 'ARGENT',
+  BRAAVOS = 'BRAAVOS',
+  FUNDING = 'FUNDING',
+}
 
-export type AccountType = (typeof AccountTypes)[keyof typeof AccountTypes] | undefined;
+export type AccountType = keyof typeof AccountTypes;
 
 /**
  * Represents a testing identity with associated signers for L1 and L2
@@ -63,7 +63,7 @@ export interface Account {
 /**
  * Type for account configuration
  */
-export type AccountConfig = {
+export interface AccountConfig {
   /**
    * Name for the account
    */
@@ -71,7 +71,7 @@ export type AccountConfig = {
   /**
    * Whether to generate random accounts instead of using the mnemonic
    */
-  random: boolean;
+  random?: boolean;
   /**
    * Mnemonic phrase used to derive account private keys
    */
@@ -83,13 +83,26 @@ export type AccountConfig = {
   /**
    * Type of signer to use for this account
    */
-  signerType: string;
+  signerType?: string;
   /**
    * Configuration for the signer
    */
-  signerConfig: any;
+  signerConfig?: any;
   /**
    * Account contract type to use (Braavos or Argent or OZ)
    */
   accountType: AccountType;
-};
+}
+
+/**
+ * Account properties used for initialization
+ */
+export interface AccountProperties {
+  l1Address?: string;
+  l1PublicKey?: string;
+  l1PrivateKey?: string;
+  l2Address?: string;
+  l2PublicKey?: string;
+  l2PrivateKey?: string;
+  deployed?: boolean;
+}

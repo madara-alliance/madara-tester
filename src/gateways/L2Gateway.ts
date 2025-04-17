@@ -2,6 +2,8 @@ import { RpcProvider } from 'starknet';
 import { getComponentLogger } from '../utils/logger';
 import { TestConfig } from '../config/types';
 import * as starknet from 'starknet';
+import { Account } from '../accounts/types';
+import { cairo, Uint256, Call } from 'starknet';
 
 type BlockIdentifier = number | 'latest' | 'pending';
 
@@ -103,5 +105,69 @@ export class L2Gateway {
     // In a real implementation, this would query the Starknet node
     const blockId = blockIdentifier === 'latest' ? Date.now() : blockIdentifier;
     return `0x${blockId.toString(16).padStart(64, '0')}`; // Placeholder value
+  }
+
+  /**
+   * Transfers a specified token from a sender account to a recipient address on L2.
+   * @param senderAccount The custom Account interface representing the sender.
+   * @param recipientAddress The address receiving the tokens.
+   * @param amount The amount of tokens to transfer (as a bigint, string, or number).
+   * @param tokenType The type of token (e.g., "ETH").
+   * @returns The result of the invoke function call.
+   */
+  async transferToken(
+    senderAccount: Account,
+    recipientAddress: string,
+    amount: bigint | string | number,
+    tokenType: string
+  ): Promise<string> {
+    this.logger.info(
+      `Initiating transfer of ${amount} ${tokenType} from ${senderAccount.l2Address} to ${recipientAddress}`
+    );
+    const tokenAddress = this.getTokenAddress(tokenType);
+    const l2Signer = senderAccount.getL2Signer() as starknet.Account;
+
+    const abi = [
+      {
+        name: 'transfer',
+        type: 'function',
+        inputs: [
+          { name: 'recipient', type: 'felt' },
+          { name: 'amount', type: 'Uint256' },
+        ],
+        outputs: [{ name: 'success', type: 'felt' }],
+      },
+    ];
+
+    const tokenContract = new starknet.Contract(abi, tokenAddress, l2Signer);
+
+    try {
+      // Convert amount to a scaled value with 18 decimals (standard for most tokens)
+      const amountValue = BigInt(amount.toString());
+      const tokenDecimals = 18; // Standard for most ERC20 tokens
+      const scaledAmount = amountValue * (10n ** BigInt(tokenDecimals));
+
+      this.logger.debug(
+        `Creating transfer call on token ${tokenType} (${tokenAddress}) with amount ${amount} (${scaledAmount} base units)`
+      );
+
+      // Use the populate pattern with correctly formatted Uint256 amount
+      const transferCall: Call = tokenContract.populate('transfer', {
+        recipient: recipientAddress,
+        amount: cairo.uint256(scaledAmount), // Format the amount as Uint256
+      });
+
+      // Execute the populated call using the account signer
+      const { transaction_hash } = await l2Signer.execute(transferCall);
+
+      this.logger.info(`Transfer transaction submitted: ${transaction_hash}`);
+
+      return transaction_hash;
+    } catch (error) {
+      this.logger.error(
+        `Failed to transfer ${tokenType} from ${senderAccount.l2Address} to ${recipientAddress}: ${(error as Error).message}`
+      );
+      throw error;
+    }
   }
 }

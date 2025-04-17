@@ -103,25 +103,6 @@ export class L1Gateway {
   }
 
   /**
-   * Waits for an L1 transaction to be mined
-   */
-  async waitForTransaction(
-    txHash: string,
-    confirmations: number = 1
-  ): Promise<ethers.TransactionReceipt | null> {
-    this.logger.debug(`Waiting for transaction ${txHash} with ${confirmations} confirmations`);
-
-    try {
-      const receipt = await this.provider.waitForTransaction(txHash, confirmations);
-      this.logger.debug(`Transaction ${txHash} confirmed: ${receipt ? 'success' : 'failed'}`);
-      return receipt;
-    } catch (error) {
-      this.logger.error(`Failed while waiting for transaction: ${(error as Error).message}`);
-      throw error;
-    }
-  }
-
-  /**
    * Queries the L1 Core Contract for the settled L2 state root
    * This is a placeholder in the demo implementation
    */
