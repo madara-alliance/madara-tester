@@ -226,9 +226,14 @@ export class AccountsManager {
           guardian: axGuardian,
         });
       case AccountTypes.BRAAVOS:
+        const initialImplementationHash = this.globalConfig.l2.contracts?.braavosClassHash;
+        const initializerCalldata = CallData.compile({ public_key: account.l2PublicKey });
+
+        // Calculate the proxy constructor calldata
         return CallData.compile({
-          // TODO: check this
-          publicKey: account.l2PublicKey,
+          implementation_address: initialImplementationHash, // Use value from config
+          initializer_selector: hash.getSelectorFromName('initializer'),
+          calldata: initializerCalldata,
         });
       default:
         throw new Error(`Unsupported account type: ${account.accountType}`);
@@ -283,6 +288,7 @@ export class AccountsManager {
 
     switch (accountType) {
       case AccountTypes.BRAAVOS:
+        // Use the existing config key which should hold the PROXY hash
         classHash = this.globalConfig.l2.contracts?.braavosClassHash;
         break;
       case AccountTypes.ARGENT:
@@ -296,7 +302,9 @@ export class AccountsManager {
     }
 
     if (!classHash) {
-      throw new Error(`Class hash for ${accountType} not configured in TestConfig.l2Contracts`);
+      // Adjust configKey name if needed based on your final choice
+      const configKey = accountType === AccountTypes.BRAAVOS ? 'braavosClassHash' : `${accountType}ClassHash`;
+      throw new Error(`Class hash for ${accountType} not configured in TestConfig.l2Contracts.${configKey}`);
     }
 
     return classHash;
@@ -381,9 +389,11 @@ export class AccountsManager {
     );
 
     try {
+      // Get the correct constructor calldata based on the account type
+      const constructorCalldata = this.getConstructorCallData(account);
       const { transaction_hash } = await starknetAccount.deployAccount({
         classHash: classHash,
-        constructorCalldata: [account.l2PublicKey],
+        constructorCalldata: constructorCalldata,
         contractAddress: account.l2Address,
         addressSalt: account.l2PublicKey,
       });

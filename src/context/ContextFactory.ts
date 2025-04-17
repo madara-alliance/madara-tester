@@ -6,6 +6,7 @@ import { L2Gateway } from '../gateways/L2Gateway';
 import { StateVerifier } from '../verifier/StateVerifier';
 import { EnvironmentManager } from '../environment/EnvironmentManager';
 import { getComponentLogger } from '../utils/logger';
+import { L2InteractionWatcher } from '../watcher/L2InteractionWatcher';
 
 /**
  * Factory for creating and assembling TestContext objects
@@ -26,6 +27,9 @@ export class ContextFactory {
     const l1Gateway = new L1Gateway(config);
     const l2Gateway = new L2Gateway(config);
 
+    // Create watchers
+    const l2Watcher = new L2InteractionWatcher(l2Gateway);
+
     // Create the accounts manager
     const accountsManager = new AccountsManager(config);
 
@@ -43,6 +47,7 @@ export class ContextFactory {
       getBridgeService: () => null,
       getStateVerifier: () => stateVerifier,
       getEnvironmentManager: () => environment,
+      getL2Watcher: () => l2Watcher,
     };
 
     this.logger.debug('Test context assembled');

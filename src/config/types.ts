@@ -60,11 +60,11 @@ export interface TestConfig {
     rpcUrl: string;
     chainId?: number;
     contracts: {
-      coreContractAddress?: string;
-      braavosClassHash?: string;
-      argentClassHash?: string;
-      ozClassHash?: string;
-      ethTokenProxyAddress?: string;
+      coreContractAddress: string;
+      braavosClassHash: string;
+      argentClassHash: string;
+      ozClassHash: string;
+      ethTokenProxyAddress: string;
     };
   };
   useApiServer?: boolean;

@@ -1,7 +1,7 @@
 import { describe, test, expect, afterAll, beforeAll } from '@jest/globals';
 import { AccountsManager, getTestContext, initEnvironment, setGlobalDebugMode } from './index';
 import { L2InteractionWatcher } from './src/watcher/L2InteractionWatcher';
-import { ethers } from 'ethers';
+import { AccountTypes } from './src/accounts/types';
 
 process.setMaxListeners(20); // TODO: remove this
 setGlobalDebugMode(true); // TODO: find a better place for this setting
@@ -21,20 +21,38 @@ describe('Testing Engine with Test Context', () => {
   // Set up the shared AccountsManager once before all tests
   beforeAll(async () => {
     const ctx = getTestContext();
+    expect(ctx).toBeDefined();
+
     accountsManager = ctx.getAccountsManager();
+    expect(accountsManager).toBeDefined();
+
+    // Load the accounts from the config file. This will create the funding accounts
+    // and any random accounts specified in the config file.
     accountsManager.createAccountsFromConfig();
+
+    const watcher = ctx.getL2Watcher();
+    expect(watcher).toBeDefined();
+
+    
   });
 
   test('should deploy and fund OZ account', async () => {
-    expect(accountsManager).toBeDefined();
-    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
-    expect(watcher).toBeDefined();
+    // Create the account
+    const ozAccount = accountsManager.createAccount({
+      name: 'Account_OZ',
+      accountType: AccountTypes.OZ,
+      signerType: 'memory',
+      random: true,
+      signerConfig: {},
+    });
 
-    const ozAccount = accountsManager.get('Account_OZ');
-    expect(ozAccount).toBeDefined();
+    if (!ozAccount) {
+      throw new Error('Failed to create OZ account');
+    }
 
-    // Start waiting for the balance update BEFORE sending funds
-    const waitForBalance = watcher.waitForBalanceUpdate(ozAccount.l2Address, {
+    // Funding process.
+    // Start waiting for the balance update BEFORE sending funds so we can detect the balance change
+    const waitForBalance = getTestContext().getL2Watcher().waitForBalanceUpdate(ozAccount.l2Address, {
       tokenType: 'ETH',
     });
     let ok_funding_oz = await accountsManager.fundAccount(
@@ -52,15 +70,21 @@ describe('Testing Engine with Test Context', () => {
   }, 1200000);
 
   test('should deploy and fund Argent account', async () => {
-    expect(accountsManager).toBeDefined();
-    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
-    expect(watcher).toBeDefined();
+    // Create the account
+    const argentAccount = accountsManager.createAccount({
+      name: 'Account_Argent',
+      accountType: AccountTypes.ARGENT,
+      signerType: 'memory',
+      random: true,
+      signerConfig: {},
+    });
 
-    const argentAccount = accountsManager.get('Account_Argent');
-    expect(argentAccount).toBeDefined();
+    if (!argentAccount) {
+      throw new Error('Failed to create Argent account');
+    }
 
     // Start waiting for the balance update BEFORE sending funds
-    const waitForBalance = watcher.waitForBalanceUpdate(argentAccount.l2Address, {
+    const waitForBalance = getTestContext().getL2Watcher().waitForBalanceUpdate(argentAccount.l2Address, {
       tokenType: 'ETH',
     });
     let ok_funding_argent = await accountsManager.fundAccount(
@@ -78,15 +102,21 @@ describe('Testing Engine with Test Context', () => {
   }, 1200000);
 
   test('should deploy and fund Braavos account', async () => {
-    expect(accountsManager).toBeDefined();
-    const watcher = new L2InteractionWatcher(getTestContext().getL2Gateway());
-    expect(watcher).toBeDefined();
+    // Create the account
+    const braavosAccount = accountsManager.createAccount({
+      name: 'Account_Braavos',
+      accountType: AccountTypes.BRAAVOS,
+      signerType: 'memory',
+      random: true,
+      signerConfig: {},
+    });
 
-    const braavosAccount = accountsManager.get('Account_Braavos');
-    expect(braavosAccount).toBeDefined();
+    if (!braavosAccount) {
+      throw new Error('Failed to create Braavos account');
+    }
 
     // Start waiting for the balance update BEFORE sending funds
-    const waitForBalance = watcher.waitForBalanceUpdate(braavosAccount.l2Address, {
+    const waitForBalance = getTestContext().getL2Watcher().waitForBalanceUpdate(braavosAccount.l2Address, {
       tokenType: 'ETH',
     });
     let ok_funding_braavos = await accountsManager.fundAccount(
