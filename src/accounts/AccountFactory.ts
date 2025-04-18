@@ -90,13 +90,13 @@ export class AccountFactory {
 
     switch (accountConfig.accountType) {
       case AccountTypes.OZ:
-        account = new OzAccount(accountConfig, accountProperties);
+        account = new OzAccount(accountConfig, accountProperties, this.config);
         break;
       case AccountTypes.ARGENT:
-        account = new ArgentAccount(accountConfig, accountProperties);
+        account = new ArgentAccount(accountConfig, accountProperties, this.config);
         break;
       case AccountTypes.BRAAVOS:
-        account = new BraavosAccount(accountConfig, accountProperties);
+        account = new BraavosAccount(accountConfig, accountProperties, this.config);
         break;
       case AccountTypes.FUNDING:
         account = FundingAccount.fromPrivateKey(l1PrivateKey, accountConfig.name);
@@ -107,7 +107,7 @@ export class AccountFactory {
 
     // If this is an L2 account, calculate its address
     if (accountConfig.accountType !== AccountTypes.FUNDING) {
-      account.calculateL2Address(this.config);
+      account.calculateL2Address();
     }
 
     this.logger.debug(

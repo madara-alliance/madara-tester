@@ -60,33 +60,22 @@ export interface IAccount {
 
   /**
    * Gets the constructor calldata for this account
-   * @param config Global test configuration
    */
-  getConstructorCallData(config: TestConfig): any;
+  getConstructorCallData(): any;
 
   /**
    * Gets the class hash for this account type
-   * @param config Global test configuration
    */
-  getClassHash(config: TestConfig): string;
+  getClassHash(): string;
 
   /**
    * Calculates the L2 address for this account
-   * @param config Global test configuration
    */
-  calculateL2Address(config: TestConfig): string;
+  calculateL2Address(): string;
 
   /**
    * Deploys this account on L2
    * @param l2Gateway L2 gateway to use for deployment
-   * @param config Global test configuration
    */
-  deploy(l2Gateway: L2Gateway, config: TestConfig): Promise<boolean>;
-
-  /**
-   * Funds this account with ETH
-   * @param l1Gateway L1 gateway to use for funding
-   * @param fundingAccount Account to use for funding
-   */
-  fund(l1Gateway: L1Gateway, fundingAccount: IAccount): Promise<boolean>;
+  deploy(l2Gateway: L2Gateway): Promise<boolean>;
 } 

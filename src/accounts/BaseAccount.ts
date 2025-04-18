@@ -36,6 +36,7 @@ export abstract class BaseAccount implements IAccount {
       l2PublicKey: initialProperties.l2PublicKey || '',
       l2PrivateKey: initialProperties.l2PrivateKey || '',
       deployed: initialProperties.deployed || false,
+      classHash: initialProperties.classHash || '',
     };
   }
 
@@ -90,19 +91,21 @@ export abstract class BaseAccount implements IAccount {
 
   /**
    * Calculates the L2 address for this account
-   * @param config Global test configuration
    */
-  calculateL2Address(config: TestConfig): string {
+  calculateL2Address(): string {
     if (!this.accountProperties.l2PublicKey) {
       throw new Error('Cannot calculate L2 address: L2 public key is missing');
     }
     
-    const constructorCallData = this.getConstructorCallData(config);
-    const classHash = this.getClassHash(config);
+    if (!this.accountProperties.classHash) {
+      throw new Error('Cannot calculate L2 address: Class hash is missing');
+    }
+    
+    const constructorCallData = this.getConstructorCallData();
     
     const l2Address = hash.calculateContractAddressFromHash(
       this.accountProperties.l2PublicKey,
-      classHash,
+      this.accountProperties.classHash,
       constructorCallData,
       0
     );
@@ -132,22 +135,24 @@ export abstract class BaseAccount implements IAccount {
 
   /**
    * Gets the constructor calldata for this account
-   * @param config Global test configuration
    */
-  abstract getConstructorCallData(config: TestConfig): any;
+  abstract getConstructorCallData(): any;
 
   /**
    * Gets the class hash for this account type
-   * @param config Global test configuration
    */
-  abstract getClassHash(config: TestConfig): string;
+  getClassHash(): string {
+    if (!this.accountProperties.classHash) {
+      throw new Error(`Class hash not set for account ${this.name}`);
+    }
+    return this.accountProperties.classHash;
+  }
 
   /**
    * Deploys this account on L2
    * @param l2Gateway L2 gateway to use for deployment
-   * @param config Global test configuration
    */
-  async deploy(l2Gateway: L2Gateway, config: TestConfig): Promise<boolean> {
+  async deploy(l2Gateway: L2Gateway): Promise<boolean> {
     // If already deployed, just return
     if (this.accountProperties.deployed) {
       this.logger.info(`Account ${this.name} already deployed`);
@@ -163,9 +168,6 @@ export abstract class BaseAccount implements IAccount {
       );
     }
 
-    // Get the class hash based on account type
-    const classHash = this.getClassHash(config);
-
     const starknetAccount = new StarknetAccount(
       l2Gateway.provider,
       this.accountProperties.l2Address,
@@ -179,9 +181,9 @@ export abstract class BaseAccount implements IAccount {
 
     try {
       // Get the correct constructor calldata based on the account type
-      const constructorCalldata = this.getConstructorCallData(config);
+      const constructorCalldata = this.getConstructorCallData();
       const { transaction_hash } = await starknetAccount.deployAccount({
-        classHash: classHash,
+        classHash: this.accountProperties.classHash,
         constructorCalldata: constructorCalldata,
         contractAddress: this.accountProperties.l2Address,
         addressSalt: this.accountProperties.l2PublicKey,
@@ -205,45 +207,5 @@ export abstract class BaseAccount implements IAccount {
       this.logger.error(`Failed to deploy account: ${(error as Error).message}`);
       throw error;
     }
-  }
-
-  /**
-   * Funds this account with ETH
-   * @param l1Gateway L1 gateway to use for funding
-   * @param fundingAccount Account to use for funding
-   */
-  async fund(l1Gateway: L1Gateway, fundingAccount: IAccount): Promise<boolean> {
-    this.logger.info(`Funding account ${this.name} on L2`);
-
-    // Create a signer with provider
-    const fundingSigner = fundingAccount.getL1Signer();
-    if (!fundingSigner) {
-      throw new Error(`Funding account ${fundingAccount.name} has no L1 signer`);
-    }
-    
-    fundingSigner.connect(l1Gateway.provider);
-
-    // Check if the fund account has enough ETH
-    const fundAccountBalance = await l1Gateway.getBalance(fundingSigner.address);
-
-    if (fundAccountBalance < ethers.parseEther('0.05')) {
-      throw new Error(`Funding account ${fundingAccount.name} has insufficient balance`);
-    }
-
-    // Send ETH to the L2 account through the bridge
-    try {
-      const txHash = await l1Gateway.bridgeToL2(
-        fundingAccount,
-        this,
-        '5' // Amount in ETH
-      );
-
-      this.logger.info(`✅ Successfully initiated funding for ${this.name} - tx: ${txHash}`);
-    } catch (error) {
-      this.logger.error(`Failed to fund account ${this.name}: ${(error as Error).message}`);
-      throw error;
-    }
-
-    return true;
   }
 } 

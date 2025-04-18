@@ -5,6 +5,7 @@ import { L2Gateway } from '../gateways/L2Gateway';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { IAccount } from './IAccount';
 import { AccountFactory } from './AccountFactory';
+import { FundingAccount } from './accounts_impl/Funding';
 
 /**
  * Manages test accounts for both L1 and L2
@@ -76,7 +77,7 @@ export class AccountsManager {
           continue;
         }
         
-        await account.deploy(l2Gateway, this.globalConfig);
+        await account.deploy(l2Gateway);
       } catch (error) {
         this.logger.error(`Failed to deploy account ${account.name}: ${(error as Error).message}`);
         return false;
@@ -88,12 +89,18 @@ export class AccountsManager {
   }
 
   /**
-   * Funds an account
-   * @param accountName Name of the account to fund
+   * Funds an account or L2 address
+   * @param accountNameOrL2Address Name of the account to fund or L2 address
    * @param l1Gateway L1 gateway to use for funding
    */
-  async fundAccount(accountName: string, l1Gateway: L1Gateway): Promise<boolean> {
-    const account = this.get(accountName);
+  async fundAccount(accountNameOrL2Address: string, l1Gateway: L1Gateway): Promise<boolean> {
+    // Determine if this is a direct L2 address (starting with 0x) or an account name
+    const isL2Address = accountNameOrL2Address.startsWith('0x');
+    
+    // Either use the address directly or get the account
+    const targetAccount = isL2Address 
+      ? accountNameOrL2Address 
+      : this.get(accountNameOrL2Address);
     
     // Find a funding account from the existing accounts
     const fundingAccount = this.getFundingAccount();
@@ -102,14 +109,14 @@ export class AccountsManager {
       throw new Error('No funding account found in account manager');
     }
 
-    return account.fund(l1Gateway, fundingAccount);
+    return fundingAccount.fundOtherAccount(l1Gateway, targetAccount);
   }
 
   /**
    * Finds a funding account in the account pool
    */
-  private getFundingAccount(): IAccount | undefined {
-    return this.accounts.find((acc) => acc.accountType === AccountTypes.FUNDING);
+  private getFundingAccount(): FundingAccount | undefined {
+    return this.accounts.find((acc) => acc.accountType === AccountTypes.FUNDING) as FundingAccount;
   }
 
   /**

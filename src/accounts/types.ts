@@ -19,6 +19,7 @@ export interface AccountProperties {
   l2PublicKey?: string;
   l2PrivateKey?: string;
   deployed?: boolean;
+  classHash?: string;
 }
 
 /**

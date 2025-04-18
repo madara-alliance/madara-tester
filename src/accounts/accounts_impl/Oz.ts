@@ -9,30 +9,33 @@ import { TestConfig } from '../../config/types';
 export class OzAccount extends BaseAccount {
   constructor(
     config: AccountConfig,
-    accountProperties: AccountProperties = {}
+    accountProperties: AccountProperties = {},
+    testConfig: TestConfig
   ) {
     // Ensure the account type is correct
     const ozConfig = { ...config, accountType: AccountTypes.OZ };
-    super(ozConfig, accountProperties);
+    
+    // Set the class hash from the test config
+    const classHash = testConfig.l2.contracts?.ozClassHash;
+    if (!classHash) {
+      throw new Error('OZ class hash not configured in TestConfig.l2.contracts.ozClassHash');
+    }
+    
+    // Add class hash to account properties
+    const propertiesWithClassHash = {
+      ...accountProperties,
+      classHash
+    };
+    
+    super(ozConfig, propertiesWithClassHash);
   }
 
   /**
    * Gets the constructor calldata for this account
    */
-  getConstructorCallData(config: TestConfig): any {
+  getConstructorCallData(): any {
     return CallData.compile({
       publicKey: this.accountProperties.l2PublicKey,
     });
   }
-
-  /**
-   * Gets the class hash for this account type
-   */
-  getClassHash(config: TestConfig): string {
-    const classHash = config.l2.contracts?.ozClassHash;
-    if (!classHash) {
-      throw new Error('OZ class hash not configured in TestConfig.l2.contracts.ozClassHash');
-    }
-    return classHash;
-  }
-} 
+}

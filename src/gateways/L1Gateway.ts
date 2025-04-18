@@ -115,16 +115,30 @@ export class L1Gateway {
   /**
    * Bridges ETH to an L2 account
    * @param fromAccount - Sender account on L1
-   * @param toAccount - The destination account on L2
+   * @param toAccount - The destination account on L2 or L2 address as a string
    * @param amount - The amount of ETH to bridge
    * @returns The transaction hash of the bridge operation
    */
   // TODO: move to Bridge.ts
-  async bridgeToL2(fromAccount: Account, toAccount: Account, amount: string): Promise<string> {
+  async bridgeToL2(
+    fromAccount: Account, 
+    toAccount: Account | string, 
+    amount: string
+  ): Promise<string> {
     const bridgeAddress = this.globalConfig.l1.contracts.ethBridgeAddress;
+    
+    // Get the L2 address - either directly if a string was provided, or from the account
+    const l2Address = typeof toAccount === 'string' 
+      ? toAccount 
+      : toAccount.getL2Address();
+    
+    // Get the recipient name for logging
+    const recipientName = typeof toAccount === 'string'
+      ? `address ${l2Address}`
+      : `account ${toAccount.name}`;
 
     this.logger.info(
-      `Bridging ${amount} ETH to ${toAccount.getL2Address()} from ${fromAccount.getL1Address()} 
+      `Bridging ${amount} ETH to ${l2Address} from ${fromAccount.getL1Address()} 
        through ${bridgeAddress}`
     );
 
@@ -147,14 +161,14 @@ export class L1Gateway {
     const amountWithFees = (parseFloat(amount) + 0.01).toString();
     // Convert L2 address hex string (felt) to a value suitable for uint256 parameter
     // ethers.toBigInt should handle the hex string directly.
-    const l2RecipientAddressAsUint256 = ethers.toBigInt(toAccount.getL2Address());
+    const l2RecipientAddressAsUint256 = ethers.toBigInt(l2Address);
 
     const tx = await contract.deposit(ethers.parseEther(amount), l2RecipientAddressAsUint256, {
       value: ethers.parseEther(amountWithFees),
     });
 
     await tx.wait();
-    this.logger.info(`✅ Successfully sent ${amount} ETH on L1 bridge`);
+    this.logger.info(`✅ Successfully sent ${amount} ETH on L1 bridge to ${recipientName}`);
     return tx.hash;
   }
 }

@@ -68,8 +68,7 @@ describe('Testing Engine with Test Context', () => {
     
     // Deploy the account using the account's deploy method
     let ok_deploy_oz = await ozAccount.deploy(
-      getTestContext().getL2Gateway(),
-      accountsManager.globalConfig
+      getTestContext().getL2Gateway()
     );
     expect(ok_deploy_oz).toBe(true);
   }, 1200000);
@@ -107,8 +106,7 @@ describe('Testing Engine with Test Context', () => {
     
     // Deploy the account using the account's deploy method
     let ok_deploy_argent = await argentAccount.deploy(
-      getTestContext().getL2Gateway(),
-      accountsManager.globalConfig
+      getTestContext().getL2Gateway()
     );
     expect(ok_deploy_argent).toBe(true);
   }, 1200000);
@@ -146,8 +144,7 @@ describe('Testing Engine with Test Context', () => {
     
     // Deploy the account using the account's deploy method
     let ok_deploy_braavos = await braavosAccount.deploy(
-      getTestContext().getL2Gateway(),
-      accountsManager.globalConfig
+      getTestContext().getL2Gateway()
     );
     expect(ok_deploy_braavos).toBe(true);
   }, 1200000);
@@ -193,8 +190,7 @@ describe('Testing Engine with Test Context', () => {
 
     // Deploy the account using the account's deploy method
     const deployOk1 = await ozAccount1.deploy(
-      getTestContext().getL2Gateway(),
-      accountsManager.globalConfig
+      getTestContext().getL2Gateway()
     );
 
     // Fund and deploy second account
@@ -214,7 +210,7 @@ describe('Testing Engine with Test Context', () => {
     await waitForBalance2;
 
     // Deploy the account using the account's deploy method
-    await ozAccount2.deploy(getTestContext().getL2Gateway(), accountsManager.globalConfig);
+    await ozAccount2.deploy(getTestContext().getL2Gateway());
 
     // Get initial balances before transaction
     const l2Gateway = getTestContext().getL2Gateway();
