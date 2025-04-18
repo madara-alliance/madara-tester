@@ -122,7 +122,7 @@ export class L2Gateway {
     tokenType: string
   ): Promise<string> {
     this.logger.info(
-      `Initiating transfer of ${amount} ${tokenType} from ${senderAccount.l2Address} to ${recipientAddress}`
+      `Initiating transfer of ${amount} ${tokenType} from ${senderAccount.getL2Address()} to ${recipientAddress}`
     );
     const tokenAddress = this.getTokenAddress(tokenType);
     const l2Signer = senderAccount.getL2Signer() as starknet.Account;
@@ -165,7 +165,7 @@ export class L2Gateway {
       return transaction_hash;
     } catch (error) {
       this.logger.error(
-        `Failed to transfer ${tokenType} from ${senderAccount.l2Address} to ${recipientAddress}: ${(error as Error).message}`
+        `Failed to transfer ${tokenType} from ${senderAccount.getL2Address()} to ${recipientAddress}: ${(error as Error).message}`
       );
       throw error;
     }

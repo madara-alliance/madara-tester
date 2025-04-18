@@ -52,7 +52,7 @@ describe('Testing Engine with Test Context', () => {
     // Start waiting for the balance update BEFORE sending funds so we can detect the balance change
     const waitForBalance = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(ozAccount.l2Address, {
+      .waitForBalanceUpdate(ozAccount.getL2Address(), {
         tokenType: 'ETH',
       });
     
@@ -91,7 +91,7 @@ describe('Testing Engine with Test Context', () => {
     // Start waiting for the balance update BEFORE sending funds
     const waitForBalance = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(argentAccount.l2Address, {
+      .waitForBalanceUpdate(argentAccount.getL2Address(), {
         tokenType: 'ETH',
       });
     
@@ -130,7 +130,7 @@ describe('Testing Engine with Test Context', () => {
     // Start waiting for the balance update BEFORE sending funds
     const waitForBalance = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(braavosAccount.l2Address, {
+      .waitForBalanceUpdate(braavosAccount.getL2Address(), {
         tokenType: 'ETH',
       });
     
@@ -182,7 +182,7 @@ describe('Testing Engine with Test Context', () => {
     // Fund and deploy first account
     const waitForBalance1 = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(ozAccount1.l2Address, {
+      .waitForBalanceUpdate(ozAccount1.getL2Address(), {
         tokenType: 'ETH',
       });
 
@@ -200,7 +200,7 @@ describe('Testing Engine with Test Context', () => {
     // Fund and deploy second account
     const waitForBalance2 = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(ozAccount2.l2Address, {
+      .waitForBalanceUpdate(ozAccount2.getL2Address(), {
         tokenType: 'ETH',
       });
 
@@ -218,7 +218,7 @@ describe('Testing Engine with Test Context', () => {
 
     // Get initial balances before transaction
     const l2Gateway = getTestContext().getL2Gateway();
-    const initialBalance2 = await l2Gateway.getBalance(ozAccount2.l2Address, 'ETH');
+    const initialBalance2 = await l2Gateway.getBalance(ozAccount2.getL2Address(), 'ETH');
 
     // Transfer tokens from account1 to account2
     const transferAmount = 1n;
@@ -226,7 +226,7 @@ describe('Testing Engine with Test Context', () => {
     // Set up watcher to detect the balance change
     const waitForReceiverBalance = getTestContext()
       .getL2Watcher()
-      .waitForBalanceUpdate(ozAccount2.l2Address, {
+      .waitForBalanceUpdate(ozAccount2.getL2Address(), {
         tokenType: 'ETH',
         expectedIncrease: transferAmount,
       });
@@ -235,7 +235,7 @@ describe('Testing Engine with Test Context', () => {
     // of what we pass here, due to the hardcoded value in L2Gateway
     const txHash = await l2Gateway.transferToken(
       ozAccount1,
-      ozAccount2.l2Address,
+      ozAccount2.getL2Address(),
       transferAmount,
       'ETH'
     );

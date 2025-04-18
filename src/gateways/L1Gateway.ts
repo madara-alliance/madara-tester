@@ -124,7 +124,7 @@ export class L1Gateway {
     const bridgeAddress = this.globalConfig.l1.contracts.ethBridgeAddress;
 
     this.logger.info(
-      `Bridging ${amount} ETH to ${toAccount.l2Address} from ${fromAccount.l1Address} 
+      `Bridging ${amount} ETH to ${toAccount.getL2Address()} from ${fromAccount.getL1Address()} 
        through ${bridgeAddress}`
     );
 
@@ -147,7 +147,7 @@ export class L1Gateway {
     const amountWithFees = (parseFloat(amount) + 0.01).toString();
     // Convert L2 address hex string (felt) to a value suitable for uint256 parameter
     // ethers.toBigInt should handle the hex string directly.
-    const l2RecipientAddressAsUint256 = ethers.toBigInt(toAccount.l2Address);
+    const l2RecipientAddressAsUint256 = ethers.toBigInt(toAccount.getL2Address());
 
     const tx = await contract.deposit(ethers.parseEther(amount), l2RecipientAddressAsUint256, {
       value: ethers.parseEther(amountWithFees),

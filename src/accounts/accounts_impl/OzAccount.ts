@@ -21,7 +21,7 @@ export class OzAccount extends BaseAccount {
    */
   getConstructorCallData(config: TestConfig): any {
     return CallData.compile({
-      publicKey: this.l2PublicKey,
+      publicKey: this.accountProperties.l2PublicKey,
     });
   }
 

@@ -22,7 +22,7 @@ export class BraavosAccount extends BaseAccount {
    */
   getConstructorCallData(config: TestConfig): any {
     const initialImplementationHash = config.l2.contracts?.braavosClassHash;
-    const initializerCalldata = CallData.compile({ public_key: this.l2PublicKey });
+    const initializerCalldata = CallData.compile({ public_key: this.accountProperties.l2PublicKey });
 
     // Calculate the proxy constructor calldata
     return CallData.compile({

@@ -19,28 +19,73 @@ const MIN_BALANCE_FOR_DEPLOY = BigInt(10000000000000000);
 export abstract class BaseAccount implements IAccount {
   name: string;
   accountType: AccountType;
-  l1Address: string;
-  l1PublicKey: string;
-  l1PrivateKey: string;
-  l2Address: string;
-  l2PublicKey: string;
-  l2PrivateKey: string;
-  deployed: boolean;
+  accountProperties: Required<AccountProperties>;
   protected logger = getComponentLogger('Account');
 
   constructor(
     config: AccountConfig,
-    accountProperties: AccountProperties = {}
+    initialProperties: AccountProperties = {}
   ) {
     this.name = config.name;
     this.accountType = config.accountType;
-    this.l1Address = accountProperties.l1Address || '';
-    this.l1PublicKey = accountProperties.l1PublicKey || '';
-    this.l1PrivateKey = accountProperties.l1PrivateKey || '';
-    this.l2Address = accountProperties.l2Address || '';
-    this.l2PublicKey = accountProperties.l2PublicKey || '';
-    this.l2PrivateKey = accountProperties.l2PrivateKey || '';
-    this.deployed = accountProperties.deployed || false;
+    this.accountProperties = {
+      l1Address: initialProperties.l1Address || '',
+      l1PublicKey: initialProperties.l1PublicKey || '',
+      l1PrivateKey: initialProperties.l1PrivateKey || '',
+      l2Address: initialProperties.l2Address || '',
+      l2PublicKey: initialProperties.l2PublicKey || '',
+      l2PrivateKey: initialProperties.l2PrivateKey || '',
+      deployed: initialProperties.deployed || false,
+    };
+  }
+
+  /**
+   * Gets the L1 address
+   */
+  getL1Address(): string {
+    return this.accountProperties.l1Address;
+  }
+
+  /**
+   * Gets the L1 public key
+   */
+  getL1PublicKey(): string {
+    return this.accountProperties.l1PublicKey;
+  }
+
+  /**
+   * Gets the L1 private key
+   */
+  getL1PrivateKey(): string {
+    return this.accountProperties.l1PrivateKey;
+  }
+
+  /**
+   * Gets the L2 address
+   */
+  getL2Address(): string {
+    return this.accountProperties.l2Address;
+  }
+
+  /**
+   * Gets the L2 public key
+   */
+  getL2PublicKey(): string {
+    return this.accountProperties.l2PublicKey;
+  }
+
+  /**
+   * Gets the L2 private key
+   */
+  getL2PrivateKey(): string {
+    return this.accountProperties.l2PrivateKey;
+  }
+
+  /**
+   * Checks if the account is deployed
+   */
+  isDeployed(): boolean {
+    return this.accountProperties.deployed;
   }
 
   /**
@@ -48,7 +93,7 @@ export abstract class BaseAccount implements IAccount {
    * @param config Global test configuration
    */
   calculateL2Address(config: TestConfig): string {
-    if (!this.l2PublicKey) {
+    if (!this.accountProperties.l2PublicKey) {
       throw new Error('Cannot calculate L2 address: L2 public key is missing');
     }
     
@@ -56,14 +101,14 @@ export abstract class BaseAccount implements IAccount {
     const classHash = this.getClassHash(config);
     
     const l2Address = hash.calculateContractAddressFromHash(
-      this.l2PublicKey,
+      this.accountProperties.l2PublicKey,
       classHash,
       constructorCallData,
       0
     );
     
     // Update the l2Address property
-    this.l2Address = l2Address;
+    this.accountProperties.l2Address = l2Address;
     
     return l2Address;
   }
@@ -72,10 +117,10 @@ export abstract class BaseAccount implements IAccount {
    * Gets the L1 signer for this account
    */
   getL1Signer(): ethers.Wallet | undefined {
-    if (!this.l1PrivateKey) {
+    if (!this.accountProperties.l1PrivateKey) {
       return undefined;
     }
-    return new ethers.Wallet(this.l1PrivateKey);
+    return new ethers.Wallet(this.accountProperties.l1PrivateKey);
   }
 
   /**
@@ -104,13 +149,13 @@ export abstract class BaseAccount implements IAccount {
    */
   async deploy(l2Gateway: L2Gateway, config: TestConfig): Promise<boolean> {
     // If already deployed, just return
-    if (this.deployed) {
+    if (this.accountProperties.deployed) {
       this.logger.info(`Account ${this.name} already deployed`);
       return true;
     }
 
     // Check if the account has enough funds to deploy
-    const balance = await l2Gateway.getBalance(this.l2Address, 'ETH');
+    const balance = await l2Gateway.getBalance(this.accountProperties.l2Address, 'ETH');
     if (balance.valueOf() < MIN_BALANCE_FOR_DEPLOY) {
       // 0.01 ETH in wei
       throw new Error(
@@ -123,13 +168,13 @@ export abstract class BaseAccount implements IAccount {
 
     const starknetAccount = new StarknetAccount(
       l2Gateway.provider,
-      this.l2Address,
-      this.l2PrivateKey,
+      this.accountProperties.l2Address,
+      this.accountProperties.l2PrivateKey,
       DEFAULT_CAIRO_VERSION
     );
 
     this.logger.info(
-      `Deploying ${this.accountType} account with public key: ${this.l2PublicKey}...`
+      `Deploying ${this.accountType} account with public key: ${this.accountProperties.l2PublicKey}...`
     );
 
     try {
@@ -138,8 +183,8 @@ export abstract class BaseAccount implements IAccount {
       const { transaction_hash } = await starknetAccount.deployAccount({
         classHash: classHash,
         constructorCalldata: constructorCalldata,
-        contractAddress: this.l2Address,
-        addressSalt: this.l2PublicKey,
+        contractAddress: this.accountProperties.l2Address,
+        addressSalt: this.accountProperties.l2PublicKey,
       });
 
       // Wait for deployment to complete
@@ -150,10 +195,10 @@ export abstract class BaseAccount implements IAccount {
       }
 
       // Update account state
-      this.deployed = true;
+      this.accountProperties.deployed = true;
 
       this.logger.info(
-        `✅ Account ${this.name} deployed successfully at ${this.l2Address} - tx: ${transaction_hash}`
+        `✅ Account ${this.name} deployed successfully at ${this.accountProperties.l2Address} - tx: ${transaction_hash}`
       );
       return true;
     } catch (error) {

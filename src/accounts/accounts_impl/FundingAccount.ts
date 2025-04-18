@@ -9,14 +9,14 @@ import { TestConfig } from '../../config/types';
 export class FundingAccount extends BaseAccount {
   constructor(
     config: AccountConfig,
-    accountProperties: Required<Pick<AccountProperties, 'l1Address' | 'l1PublicKey' | 'l1PrivateKey'>>
+    initialProperties: Required<Pick<AccountProperties, 'l1Address' | 'l1PublicKey' | 'l1PrivateKey'>>
   ) {
     // Ensure the account type is correct
     const fundingConfig = { ...config, accountType: AccountTypes.FUNDING };
     
     // Funding accounts are always deployed and have no L2 component
     super(fundingConfig, {
-      ...accountProperties,
+      ...initialProperties,
       l2Address: '',
       l2PublicKey: '',
       l2PrivateKey: '',

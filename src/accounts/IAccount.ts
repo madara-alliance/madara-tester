@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { CairoCustomEnum, CairoOption, CallData } from 'starknet';
-import { AccountType } from './types';
+import { AccountType, AccountProperties } from './types';
 import { L1Gateway } from '../gateways/L1Gateway';
 import { L2Gateway } from '../gateways/L2Gateway';
 import { TestConfig } from '../config/types';
@@ -11,13 +11,42 @@ import { TestConfig } from '../config/types';
 export interface IAccount {
   name: string;
   accountType: AccountType;
-  l1Address: string;
-  l1PublicKey: string;
-  l1PrivateKey: string;
-  l2Address: string;
-  l2PublicKey: string;
-  l2PrivateKey: string;
-  deployed: boolean;
+  accountProperties: Required<AccountProperties>;
+
+  /**
+   * Gets the L1 address
+   */
+  getL1Address(): string;
+
+  /**
+   * Gets the L1 public key
+   */
+  getL1PublicKey(): string;
+
+  /**
+   * Gets the L1 private key
+   */
+  getL1PrivateKey(): string;
+
+  /**
+   * Gets the L2 address
+   */
+  getL2Address(): string;
+
+  /**
+   * Gets the L2 public key
+   */
+  getL2PublicKey(): string;
+
+  /**
+   * Gets the L2 private key
+   */
+  getL2PrivateKey(): string;
+
+  /**
+   * Checks if the account is deployed
+   */
+  isDeployed(): boolean;
 
   /**
    * Gets the L1 signer for this account

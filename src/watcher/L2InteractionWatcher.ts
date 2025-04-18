@@ -88,7 +88,7 @@ export class L2InteractionWatcher {
     account: Account | string,
     options: WaitForBalanceOptions = {}
   ): Promise<BigInt> {
-    const l2Address = typeof account === 'string' ? account : account.l2Address;
+    const l2Address = typeof account === 'string' ? account : account.getL2Address();
     const {
       retryInterval = DEFAULT_BALANCE_RETRY_INTERVAL,
       timeout = DEFAULT_BALANCE_TIMEOUT,

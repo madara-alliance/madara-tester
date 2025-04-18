@@ -21,7 +21,7 @@ export class ArgentAccount extends BaseAccount {
    * Gets the constructor calldata for this account
    */
   getConstructorCallData(config: TestConfig): any {
-    const axSigner = new CairoCustomEnum({ Starknet: { pubkey: this.l2PublicKey } });
+    const axSigner = new CairoCustomEnum({ Starknet: { pubkey: this.accountProperties.l2PublicKey } });
     const axGuardian = new CairoOption<unknown>(CairoOptionVariant.None);
     return CallData.compile({
       owner: axSigner,

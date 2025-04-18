@@ -113,10 +113,10 @@ export class AccountFactory {
     this.logger.debug(
       `Created random account: 
       Name: ${account.name}
-      L1 Address: ${account.l1Address}
-      L2 Address: ${account.l2Address}
+      L1 Address: ${account.getL1Address()}
+      L2 Address: ${account.getL2Address()}
       Account Type: ${account.accountType}
-      Deployed: ${account.deployed}`
+      Deployed: ${account.isDeployed()}`
     );
 
     return account;

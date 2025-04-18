@@ -38,7 +38,7 @@ export class AccountsManager {
         continue;
       }
 
-      this.logger.debug(`Added account: ${account.name}, (${account.l1Address})`);
+      this.logger.debug(`Added account: ${account.name}, (${account.getL1Address()})`);
     }
 
     this.logger.debug(`Initialized ${this.accounts.length} accounts`);
@@ -71,7 +71,7 @@ export class AccountsManager {
     for (let account of this.accounts) {
       try {
         // Skip accounts that are funding-only (no L2 component)
-        if (!account.l2Address || account.l2Address === '') {
+        if (!account.getL2Address() || account.getL2Address() === '') {
           this.logger.debug(`Skipping L1-only account: ${account.name}`);
           continue;
         }
@@ -129,10 +129,10 @@ export class AccountsManager {
   /**
    * Returns all pre-configured accounts with only name and l1address
    */
-  list(): Pick<IAccount, 'name' | 'l1Address'>[] {
+  list(): { name: string; l1Address: string; }[] {
     return this.accounts.map((account) => ({
       name: account.name,
-      l1Address: account.l1Address,
+      l1Address: account.getL1Address(),
     }));
   }
 

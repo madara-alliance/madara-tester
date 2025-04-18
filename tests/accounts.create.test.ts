@@ -56,15 +56,15 @@ describe('AccountsManager', () => {
     expect(account.accountType).toBe(AccountTypes.OZ);
     
     // Check that addresses and keys were generated
-    expect(account.l1Address).toBeDefined();
-    expect(account.l1PublicKey).toBeDefined();
-    expect(account.l1PrivateKey).toBeDefined();
-    expect(account.l2Address).toBeDefined();
-    expect(account.l2PublicKey).toBeDefined();
-    expect(account.l2PrivateKey).toBeDefined();
+    expect(account.getL1Address()).toBeDefined();
+    expect(account.getL1PublicKey()).toBeDefined();
+    expect(account.getL1PrivateKey()).toBeDefined();
+    expect(account.getL2Address()).toBeDefined();
+    expect(account.getL2PublicKey()).toBeDefined();
+    expect(account.getL2PrivateKey()).toBeDefined();
     
     // Verify the account is not deployed by default
-    expect(account.deployed).toBe(false);
+    expect(account.isDeployed()).toBe(false);
   });
 
   test('should create a Braavos account', () => {
@@ -84,15 +84,15 @@ describe('AccountsManager', () => {
     expect(account.accountType).toBe(AccountTypes.BRAAVOS);
     
     // Check that addresses and keys were generated
-    expect(account.l1Address).toBeDefined();
-    expect(account.l1PublicKey).toBeDefined();
-    expect(account.l1PrivateKey).toBeDefined();
-    expect(account.l2Address).toBeDefined();
-    expect(account.l2PublicKey).toBeDefined();
-    expect(account.l2PrivateKey).toBeDefined();
+    expect(account.getL1Address()).toBeDefined();
+    expect(account.getL1PublicKey()).toBeDefined();
+    expect(account.getL1PrivateKey()).toBeDefined();
+    expect(account.getL2Address()).toBeDefined();
+    expect(account.getL2PublicKey()).toBeDefined();
+    expect(account.getL2PrivateKey()).toBeDefined();
     
     // Verify the account is not deployed by default
-    expect(account.deployed).toBe(false);
+    expect(account.isDeployed()).toBe(false);
   });
 
   test('should create an Argent account', () => {
@@ -112,15 +112,15 @@ describe('AccountsManager', () => {
     expect(account.accountType).toBe(AccountTypes.ARGENT);
     
     // Check that addresses and keys were generated
-    expect(account.l1Address).toBeDefined();
-    expect(account.l1PublicKey).toBeDefined();
-    expect(account.l1PrivateKey).toBeDefined();
-    expect(account.l2Address).toBeDefined();
-    expect(account.l2PublicKey).toBeDefined();
-    expect(account.l2PrivateKey).toBeDefined();
+    expect(account.getL1Address()).toBeDefined();
+    expect(account.getL1PublicKey()).toBeDefined();
+    expect(account.getL1PrivateKey()).toBeDefined();
+    expect(account.getL2Address()).toBeDefined();
+    expect(account.getL2PublicKey()).toBeDefined();
+    expect(account.getL2PrivateKey()).toBeDefined();
     
     // Verify the account is not deployed by default
-    expect(account.deployed).toBe(false);
+    expect(account.isDeployed()).toBe(false);
   });
 
   test('should create account by config', () => {
