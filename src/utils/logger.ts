@@ -36,8 +36,18 @@ function getLogLevelEmoji(level: string): string {
 const prettyStream = pretty({
   colorize: true,
   ignore: 'pid,hostname',
-  // Define message format directly as a string template
-  messageFormat: '{msg}',
+  // Use a function for messageFormat to conditionally format messages
+  messageFormat: (log, messageKey, levelLabel) => {
+    const emoji = getLogLevelEmoji(log.level as string);
+    const message = log[messageKey] as string;
+    
+    // If it's an error level message, wrap the entire message in red color codes
+    if (log.level === 'error') {
+      return `\u001b[31m${emoji}${message}\u001b[0m`;
+    }
+    
+    return `${emoji}${message}`;
+  },
   customColors: 'error:red,warn:yellow,info:green,debug:blue,trace:magenta',
   sync: true, // Force synchronous writing
 });
