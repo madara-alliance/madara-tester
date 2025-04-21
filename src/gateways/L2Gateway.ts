@@ -143,7 +143,7 @@ export class L2Gateway {
 
     try {
       this.logger.debug(
-        `Creating transfer call on token ${tokenType} (${tokenAddress}) with amount ${amount} (${scaledAmount} base units)`
+        `Creating transfer call on token ${tokenType} (${tokenAddress}) with amount ${amount} (${amount.toString()} base units)`
       );
 
       // Use the populate pattern with correctly formatted Uint256 amount
