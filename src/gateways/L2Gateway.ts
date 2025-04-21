@@ -149,7 +149,7 @@ export class L2Gateway {
       // Use the populate pattern with correctly formatted Uint256 amount
       const transferCall: Call = tokenContract.populate('transfer', {
         recipient: recipientAddress,
-        amount: 0x0eeebe5b,
+        amount: cairo.uint256(amount),
       });
 
       // Execute the populated call using the account signer
