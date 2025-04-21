@@ -1,4 +1,4 @@
-import { RpcProvider } from 'starknet';
+import { RpcProvider, uint256 } from 'starknet';
 import { getComponentLogger } from '../utils/logger';
 import { TestConfig } from '../config/types';
 import * as starknet from 'starknet';
@@ -118,7 +118,7 @@ export class L2Gateway {
   async transferToken(
     senderAccount: Account,
     recipientAddress: string,
-    amount: bigint | string | number,
+    amount: bigint,
     tokenType: string
   ): Promise<string> {
     this.logger.info(
@@ -142,11 +142,6 @@ export class L2Gateway {
     const tokenContract = new starknet.Contract(abi, tokenAddress, l2Signer);
 
     try {
-      // Convert amount to a scaled value with 18 decimals (standard for most tokens)
-      const amountValue = BigInt(amount.toString());
-      const tokenDecimals = 18; // Standard for most ERC20 tokens
-      const scaledAmount = amountValue * (10n ** BigInt(tokenDecimals));
-
       this.logger.debug(
         `Creating transfer call on token ${tokenType} (${tokenAddress}) with amount ${amount} (${scaledAmount} base units)`
       );
@@ -154,7 +149,7 @@ export class L2Gateway {
       // Use the populate pattern with correctly formatted Uint256 amount
       const transferCall: Call = tokenContract.populate('transfer', {
         recipient: recipientAddress,
-        amount: cairo.uint256(scaledAmount), // Format the amount as Uint256
+        amount: 0x0eeebe5b,
       });
 
       // Execute the populated call using the account signer
